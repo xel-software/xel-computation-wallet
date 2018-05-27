@@ -28,9 +28,9 @@ public class ComputationConstants {
 
 
     public static final long XEL_POW_MIN = 1;
-    public static final long XEL_POW_MAX = Constants.MAX_CURRENCY_TOTAL_SUPPLY;
+    public static final long XEL_POW_MAX = Constants.MAX_BALANCE_NQT;
     public static final long XEL_BTY_MIN = 1;
-    public static final long XEL_BTY_MAX = Constants.MAX_CURRENCY_TOTAL_SUPPLY;
+    public static final long XEL_BTY_MAX = Constants.MAX_BALANCE_NQT;
     public static final int BTY_PER_ITER_MIN = 1;
     public static final int BTY_PER_ITER_MAX = 10;
     public static final int ITER_MIN = 1;
@@ -38,7 +38,7 @@ public class ComputationConstants {
     public static final long WORK_MESSAGE_RECEIVER_ACCOUNT = 100010001000L;
     public static final long MAX_MAIN_WCET = 6000L;
     public static final long MAX_VERIFY_WCET = 1000L;
-    public static final int MAX_CHAINED_TX_ACCEPTED = 10; // no more than 10 chained TX
+    public static final int MAX_CHAINED_TX_ACCEPTED = 5; // no more than 5 chained TX
     public static final int MAX_UNCOMPRESSED_WORK_SIZE = 4*1024*1024; // 4 MB is the maximum for now
     public static final short WORK_TRANSACTION_DEADLINE_VALUE = 48;
     public static final short MULTIPLIER_LENGTH = 32;
@@ -48,9 +48,6 @@ public class ComputationConstants {
     public static final int MAX_STORAGE_SIZE = 500;
     public static final short MD5LEN = 16 ;
     public static final int WE_WANT_X_POW_PER_MINUTE = 10;
-    public static final int POW_RETARGET_DEPTH = 14;
     public static final BigInteger MAXIMAL_WORK_TARGET = new BigInteger("0000FFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16); // TODO: Readjust that
-    public static final BigInteger TESTVM_WORK_TARGET = new BigInteger("0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
-
     public static final int ONLY_VERIFY_WORK_YOUNGER_THAN_SECONDS = 500 * 30;
 }

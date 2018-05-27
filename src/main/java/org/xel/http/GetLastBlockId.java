@@ -44,7 +44,7 @@ public final class GetLastBlockId extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONObject o = new JSONObject();
-        o.put("lastBlock", getLastBlock());
+        o.put("lastBlock", Long.toUnsignedString(getLastBlock()));
         o.put("lastBlockComputation", getLastBlockComputational());
         Account account = null;
         try {

@@ -155,6 +155,8 @@ var NRS = (function(NRS, $, undefined) {
 
 		var type = $modal.data('transactionType');
 		var subType = $modal.data('transactionSubtype');
+		console.log("ADVANCED MODAL VALUES");
+		console.log("T=" + type + ", ST=" + subType);
 		if (type != undefined && subType != undefined) {
 			if (NRS.transactionTypes[type]["subTypes"][subType]["serverConstants"]["isPhasingSafe"] == true) {
 				$modal.find('.phasing_safe_alert').hide();

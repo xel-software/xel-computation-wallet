@@ -18,7 +18,11 @@
 package org.xel;
 
 import org.xel.crypto.Crypto;
-import org.xel.db.*;
+import org.xel.db.DbIterator;
+import org.xel.db.DerivedDbTable;
+import org.xel.db.FilteringIterator;
+import org.xel.db.FullTextTrigger;
+import org.xel.db.ComputationalDerivedDbTable;
 import org.xel.peer.Peer;
 import org.xel.peer.Peers;
 import org.xel.util.Convert;
@@ -31,6 +35,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -174,7 +179,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
-    public static BlockchainProcessorImpl getInstance() {
+    static BlockchainProcessorImpl getInstance() {
         return instance;
     }
 
@@ -182,17 +187,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final ExecutorService networkService = Executors.newCachedThreadPool();
     private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
-    private final boolean trimDerivedTables = Nxt.getBooleanProperty("nxt.trimDerivedTables");
+    private final boolean trimDerivedTables = Nxt.getBooleanProperty("org.xel.trimDerivedTables");
     private final int defaultNumberOfForkConfirmations = Nxt.getIntProperty(Constants.isTestnet
-            ? "nxt.testnetNumberOfForkConfirmations" : "nxt.numberOfForkConfirmations");
-    private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("nxt.simulateEndlessDownload");
+            ? "org.xel.testnetNumberOfForkConfirmations" : "org.xel.numberOfForkConfirmations");
+    private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("org.xel.simulateEndlessDownload");
 
     private int initialScanHeight;
     private volatile int lastTrimHeight;
     private volatile int lastRestoreTime = 0;
     private final Set<Long> prunableTransactions = new HashSet<>();
 
-    public final Listeners<Block, Event> blockListeners = new Listeners<>();
+    private final Listeners<Block, Event> blockListeners = new Listeners<>();
     private volatile Peer lastBlockchainFeeder;
     private volatile int lastBlockchainFeederHeight;
     private volatile boolean getMoreBlocks = true;
@@ -1052,7 +1057,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     };
 
     private BlockchainProcessorImpl() {
-        final int trimFrequency = Nxt.getIntProperty("nxt.trimFrequency");
+        final int trimFrequency = Nxt.getIntProperty("org.xel.trimFrequency");
         blockListeners.addListener(block -> {
             if (block.getHeight() % 5000 == 0) {
                 Logger.logMessage("processed block " + block.getHeight());
@@ -1083,12 +1088,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockListeners.addListener(block -> Db.db.analyzeTables(), Event.RESCAN_END);
 
         ThreadPool.runBeforeStart(() -> {
-            Logger.logInfoMessage("Regular Processor initialized");
             alreadyInitialized = true;
             if (addGenesisBlock()) {
                 scan(0, false);
-            } else if (Nxt.getBooleanProperty("nxt.forceScan")) {
-                scan(0, Nxt.getBooleanProperty("nxt.forceValidate"));
+            } else if (Nxt.getBooleanProperty("org.xel.forceScan")) {
+                scan(0, Nxt.getBooleanProperty("org.xel.forceValidate"));
             } else {
                 boolean rescan;
                 boolean validate;
@@ -1128,14 +1132,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public void registerDerivedTable(DerivedDbTable table) {
         if (alreadyInitialized) {
-            throw new IllegalStateException("Too late to register table " + table + ", must have done it in Nxt.Init");
+            throw new IllegalStateException("Too late to register table " + table + ", must have done it in org.xel.Init");
         }
         derivedTables.add(table);
-    }
-
-    @Override
-    public void registerComputationalDerivedTable(ComputationalDerivedDbTable table) {
-        throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
@@ -1364,6 +1363,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return null;
     }
 
+    @Override
+    public void registerComputationalDerivedTable(ComputationalDerivedDbTable table) {
+        throw new NotImplementedException();
+    }
+
     void shutdown() {
         ThreadPool.shutdownExecutor("networkService", networkService, 5);
     }
@@ -1421,6 +1425,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             throw new RuntimeException(e.toString(), e);
         }
     }
+
     public void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
         pushBlock(block, false);
     }
@@ -1642,7 +1647,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (transaction.getTimestamp() > fromTimestamp) {
                         for (Appendix.AbstractAppendix appendage : transaction.getAppendages(true)) {
                             if ((appendage instanceof Appendix.Prunable) &&
-                                        !((Appendix.Prunable)appendage).hasPrunableData()) {
+                                    !((Appendix.Prunable)appendage).hasPrunableData()) {
                                 synchronized (prunableTransactions) {
                                     prunableTransactions.add(transaction.getId());
                                 }
@@ -1700,12 +1705,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     }
                 });
             }
-
             blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
             if (block.getTransactions().size() > 0) {
                 TransactionProcessorImpl.getInstance().notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
             }
-
             AccountLedger.commitEntries();
         } finally {
             isProcessingBlock = false;
@@ -1923,7 +1926,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 payloadHash, publicKey, generationSignature, previousBlockHash, blockTransactions, secretPhrase);
 
         try {
-            pushBlock(block, true);
+            pushBlock(block);
             blockListeners.notify(block, Event.BLOCK_GENERATED);
             Logger.logDebugMessage("Account " + Long.toUnsignedString(block.getGeneratorId()) + " generated block " + block.getStringId()
                     + " at height " + block.getHeight() + " timestamp " + block.getTimestamp() + " fee " + ((float)block.getTotalFeeNQT())/Constants.ONE_NXT);

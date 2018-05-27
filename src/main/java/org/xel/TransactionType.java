@@ -41,7 +41,6 @@ public abstract class TransactionType {
     public static final byte TYPE_PAYMENT = 0;
     private static final byte TYPE_MESSAGING = 1;
     private static final byte TYPE_ACCOUNT_CONTROL = 2;
-    private static final byte TYPE_DATA = 3;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
     public static final byte SUBTYPE_PAYMENT_REDEEM = 1;
@@ -49,7 +48,6 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_MESSAGING_ARBITRARY_MESSAGE = 0;
     private static final byte SUBTYPE_MESSAGING_POLL_CREATION = 1;
     private static final byte SUBTYPE_MESSAGING_VOTE_CASTING = 2;
-    private static final byte SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT = 3;
     private static final byte SUBTYPE_MESSAGING_ACCOUNT_INFO = 4;
     private static final byte SUBTYPE_MESSAGING_PHASING_VOTE_CASTING = 5;
 
@@ -57,8 +55,6 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
     private static final byte SUBTYPE_ACCOUNT_CONTROL_PHASING_ONLY = 1;
 
-    private static final byte SUBTYPE_DATA_TAGGED_DATA_UPLOAD = 0;
-    private static final byte SUBTYPE_DATA_TAGGED_DATA_EXTEND = 1;
 
     public static boolean isZeroFee(Transaction t){
         if(t.getType().getType() == TYPE_PAYMENT && t.getType().getSubtype() == SUBTYPE_PAYMENT_REDEEM) return true;
@@ -84,8 +80,6 @@ public abstract class TransactionType {
                         return Messaging.POLL_CREATION;
                     case SUBTYPE_MESSAGING_VOTE_CASTING:
                         return Messaging.VOTE_CASTING;
-                    case SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT:
-                        return Messaging.HUB_ANNOUNCEMENT;
                     case SUBTYPE_MESSAGING_ACCOUNT_INFO:
                         return Messaging.ACCOUNT_INFO;
                     case SUBTYPE_MESSAGING_PHASING_VOTE_CASTING:
@@ -104,15 +98,6 @@ public abstract class TransactionType {
                         return null;
                 }
 
-            case TYPE_DATA:
-                switch (subtype) {
-                    case SUBTYPE_DATA_TAGGED_DATA_UPLOAD:
-                        return Data.TAGGED_DATA_UPLOAD;
-                    case SUBTYPE_DATA_TAGGED_DATA_EXTEND:
-                        return Data.TAGGED_DATA_EXTEND;
-                    default:
-                        return null;
-                }
             default:
                 return null;
         }
@@ -984,72 +969,7 @@ public abstract class TransactionType {
 
         };
 
-        public static final TransactionType HUB_ANNOUNCEMENT = new Messaging() {
 
-            @Override
-            public final byte getSubtype() {
-                return TransactionType.SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT;
-            }
-
-            @Override
-            public LedgerEvent getLedgerEvent() {
-                return LedgerEvent.HUB_ANNOUNCEMENT;
-            }
-
-            @Override
-            public String getName() {
-                return "HubAnnouncement";
-            }
-
-            @Override
-            Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-                return new Attachment.MessagingHubAnnouncement(buffer, transactionVersion);
-            }
-
-            @Override
-            Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-                return new Attachment.MessagingHubAnnouncement(attachmentData);
-            }
-
-            @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
-                Hub.addOrUpdateHub(transaction, attachment);
-            }
-
-            @Override
-            void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-                if(1==1)
-                    throw new NxtException.NotYetEnabledException("Hub terminal announcement not yet enabled");
-
-                if (Nxt.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
-                    throw new NxtException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Nxt.getBlockchain().getHeight());
-                }
-                Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
-                if (attachment.getMinFeePerByteNQT() < 0 || attachment.getMinFeePerByteNQT() > Constants.MAX_BALANCE_NQT
-                        || attachment.getUris().length > Constants.MAX_HUB_ANNOUNCEMENT_URIS) {
-                    // cfb: "0" is allowed to show that another way to determine the min fee should be used
-                    throw new NxtException.NotValidException("Invalid hub terminal announcement: " + attachment.getJSONObject());
-                }
-                for (String uri : attachment.getUris()) {
-                    if (uri.length() > Constants.MAX_HUB_ANNOUNCEMENT_URI_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid URI length: " + uri.length());
-                    }
-                    //also check URI validity here?
-                }
-            }
-
-            @Override
-            public boolean canHaveRecipient() {
-                return false;
-            }
-
-            @Override
-            public boolean isPhasingSafe() {
-                return true;
-            }
-
-        };
 
         public static final Messaging ACCOUNT_INFO = new Messaging() {
 
@@ -1293,200 +1213,6 @@ public abstract class TransactionType {
             }
 
         };
-
-    }
-
-    public static abstract class Data extends TransactionType {
-
-        private static final Fee TAGGED_DATA_FEE = new Fee.SizeBasedFee(Constants.TENTH_NXT, Constants.TENTH_NXT/10) {
-            @Override
-            public int getSize(TransactionImpl transaction, Appendix appendix) {
-                return appendix.getFullSize();
-            }
-        };
-
-        private Data() {
-        }
-
-        @Override
-        public final byte getType() {
-            return TransactionType.TYPE_DATA;
-        }
-
-        @Override
-        final Fee getBaselineFee(Transaction transaction) {
-            return TAGGED_DATA_FEE;
-        }
-
-        @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        }
-
-        @Override
-        public final boolean canHaveRecipient() {
-            return false;
-        }
-
-        @Override
-        public final boolean isPhasingSafe() {
-            return false;
-        }
-
-        @Override
-        public final boolean isPhasable() {
-            return false;
-        }
-
-        public static final TransactionType TAGGED_DATA_UPLOAD = new Data() {
-
-            @Override
-            public byte getSubtype() {
-                return SUBTYPE_DATA_TAGGED_DATA_UPLOAD;
-            }
-
-            @Override
-            public LedgerEvent getLedgerEvent() {
-                return LedgerEvent.TAGGED_DATA_UPLOAD;
-            }
-
-            @Override
-            Attachment.TaggedDataUpload parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-                return new Attachment.TaggedDataUpload(buffer, transactionVersion);
-            }
-
-            @Override
-            Attachment.TaggedDataUpload parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-                return new Attachment.TaggedDataUpload(attachmentData);
-            }
-
-            @Override
-            void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-
-                // Disable Data Cloud in light version
-                if(1==1) throw new NxtException.NotYetEnabledException("Data Cloud not yet enabled");
-
-                Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
-                if (attachment.getData() == null && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
-                    throw new NxtException.NotCurrentlyValidException("Data has been pruned prematurely");
-                }
-                if (attachment.getData() != null) {
-                    if (attachment.getName().length() == 0 || attachment.getName().length() > Constants.MAX_TAGGED_DATA_NAME_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid name length: " + attachment.getName().length());
-                    }
-                    if (attachment.getDescription().length() > Constants.MAX_TAGGED_DATA_DESCRIPTION_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid description length: " + attachment.getDescription().length());
-                    }
-                    if (attachment.getTags().length() > Constants.MAX_TAGGED_DATA_TAGS_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid tags length: " + attachment.getTags().length());
-                    }
-                    if (attachment.getType().length() > Constants.MAX_TAGGED_DATA_TYPE_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid type length: " + attachment.getType().length());
-                    }
-                    if (attachment.getChannel().length() > Constants.MAX_TAGGED_DATA_CHANNEL_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid channel length: " + attachment.getChannel().length());
-                    }
-                    if (attachment.getFilename().length() > Constants.MAX_TAGGED_DATA_FILENAME_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid filename length: " + attachment.getFilename().length());
-                    }
-                    if (attachment.getData().length == 0 || attachment.getData().length > Constants.MAX_TAGGED_DATA_DATA_LENGTH) {
-                        throw new NxtException.NotValidException("Invalid data length: " + attachment.getData().length);
-                    }
-                }
-            }
-
-            @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
-                TaggedData.add((TransactionImpl)transaction, attachment);
-            }
-
-            @Override
-            public String getName() {
-                return "TaggedDataUpload";
-            }
-
-            @Override
-            boolean isPruned(long transactionId) {
-                return TaggedData.isPruned(transactionId);
-            }
-
-        };
-
-        public static final TransactionType TAGGED_DATA_EXTEND = new Data() {
-
-            @Override
-            public byte getSubtype() {
-                return SUBTYPE_DATA_TAGGED_DATA_EXTEND;
-            }
-
-            @Override
-            public LedgerEvent getLedgerEvent() {
-                return LedgerEvent.TAGGED_DATA_EXTEND;
-            }
-
-            @Override
-            Attachment.TaggedDataExtend parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-                return new Attachment.TaggedDataExtend(buffer, transactionVersion);
-            }
-
-            @Override
-            Attachment.TaggedDataExtend parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-                return new Attachment.TaggedDataExtend(attachmentData);
-            }
-
-            @Override
-            void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-
-                if(1==1) throw new NxtException.NotCurrentlyValidException("Datacloud is disabled in light wallet mode");
-
-                Attachment.TaggedDataExtend attachment = (Attachment.TaggedDataExtend) transaction.getAttachment();
-                if ((attachment.jsonIsPruned() || attachment.getData() == null) && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
-                    throw new NxtException.NotCurrentlyValidException("Data has been pruned prematurely");
-                }
-                TransactionImpl uploadTransaction = TransactionDb.findTransaction(attachment.getTaggedDataId(), Nxt.getBlockchain().getHeight());
-                if (uploadTransaction == null) {
-                    throw new NxtException.NotCurrentlyValidException("No such tagged data upload " + Long.toUnsignedString(attachment.getTaggedDataId()));
-                }
-                if (uploadTransaction.getType() != TAGGED_DATA_UPLOAD) {
-                    throw new NxtException.NotValidException("Transaction " + Long.toUnsignedString(attachment.getTaggedDataId())
-                            + " is not a tagged data upload");
-                }
-                if (attachment.getData() != null) {
-                    Attachment.TaggedDataUpload taggedDataUpload = (Attachment.TaggedDataUpload)uploadTransaction.getAttachment();
-                    if (!Arrays.equals(attachment.getHash(), taggedDataUpload.getHash())) {
-                        throw new NxtException.NotValidException("Hashes don't match! Extend hash: " + Convert.toHexString(attachment.getHash())
-                                + " upload hash: " + Convert.toHexString(taggedDataUpload.getHash()));
-                    }
-                }
-                TaggedData taggedData = TaggedData.getData(attachment.getTaggedDataId());
-                if (taggedData != null && taggedData.getTransactionTimestamp() > Nxt.getEpochTime() + 6 * Constants.MIN_PRUNABLE_LIFETIME) {
-                    throw new NxtException.NotCurrentlyValidException("Data already extended, timestamp is " + taggedData.getTransactionTimestamp());
-                }
-            }
-
-            @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.TaggedDataExtend attachment = (Attachment.TaggedDataExtend) transaction.getAttachment();
-                TaggedData.extend(transaction, attachment);
-            }
-
-            @Override
-            public String getName() {
-                return "TaggedDataExtend";
-            }
-
-            @Override
-            boolean isPruned(long transactionId) {
-                return false;
-            }
-
-        };
-
     }
 
 }

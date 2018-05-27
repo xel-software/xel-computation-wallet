@@ -247,13 +247,13 @@ public final class API {
 
             ServletHolder servletHolder = apiHandler.addServlet(APIServlet.class, "/nxt");
             servletHolder.getRegistration().setMultipartConfig(new MultipartConfigElement(
-                    null, Math.max(Nxt.getIntProperty("nxt.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
+                    null, Math.max(Nxt.getIntProperty("nxt.maxUploadFileSize"), Constants.MAX_UPLOAD_SERVLET_LENGTH), -1L, 0));
 
             servletHolder = apiHandler.addServlet(APIProxyServlet.class, "/nxt-proxy");
             servletHolder.setInitParameters(Collections.singletonMap("idleTimeout",
                     "" + Math.max(apiServerIdleTimeout - APIProxyServlet.PROXY_IDLE_TIMEOUT_DELTA, 0)));
             servletHolder.getRegistration().setMultipartConfig(new MultipartConfigElement(
-                    null, Math.max(Nxt.getIntProperty("nxt.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
+                    null, Math.max(Nxt.getIntProperty("nxt.maxUploadFileSize"), Constants.MAX_UPLOAD_SERVLET_LENGTH), -1L, 0));
             apiHandler.addServlet(ShapeShiftProxyServlet.class, ShapeShiftProxyServlet.SHAPESHIFT_TARGET + "/*");
 
             GzipHandler gzipHandler = new GzipHandler();

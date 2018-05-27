@@ -71,7 +71,7 @@ public class CommandNewWork extends IComputationAttachment {
     private int storage_size = -1;
 
     public CommandNewWork(int cap_number_pow, short deadline, long xelPerPow, long xelPerBounty, int
-            bountiesPerIteration, int numberOfIterations, byte[] sourceCode){
+            bountiesPerIteration, int numberOfIterations, byte[] sourceCode) {
         super();
         this.cap_number_pow = cap_number_pow;
         this.deadline = deadline;
@@ -79,7 +79,7 @@ public class CommandNewWork extends IComputationAttachment {
         this.xelPerBounty = xelPerBounty;
         this.bountiesPerIteration = bountiesPerIteration;
         this.numberOfIterations = numberOfIterations;
-        if(sourceCode.length <= MAX_UNCOMPRESSED_WORK_SIZE)
+        if (sourceCode.length <= MAX_UNCOMPRESSED_WORK_SIZE)
             this.sourceCode = sourceCode;
         else
             this.sourceCode = new byte[0];
@@ -91,7 +91,7 @@ public class CommandNewWork extends IComputationAttachment {
             gzip.flush();
             gzip.close();
             sourceCodeCompressed = obj.toByteArray();
-        }catch(Exception e){
+        } catch (Exception e) {
             sourceCodeCompressed = new byte[0];
         }
     }
@@ -114,25 +114,25 @@ public class CommandNewWork extends IComputationAttachment {
             this.numberOfIterations = buffer.getInt();
             this.cap_number_pow = buffer.getInt();
 
-            if(compressed_or_not == 0) {
+            if (compressed_or_not == 0) {
                 short len = buffer.getShort();
-                if(len > MAX_UNCOMPRESSED_WORK_SIZE)
+                if (len > MAX_UNCOMPRESSED_WORK_SIZE)
                     this.sourceCode = new byte[0];
                 else
                     this.sourceCode = new byte[len];
 
-               if (this.sourceCode.length > 0)
-                        buffer.get(this.sourceCode);
+                if (this.sourceCode.length > 0)
+                    buffer.get(this.sourceCode);
 
 
-                    ByteArrayOutputStream obj = new ByteArrayOutputStream();
-                    GZIPOutputStream gzip = new GZIPOutputStream(obj);
-                    gzip.write(sourceCode);
-                    gzip.flush();
-                    gzip.close();
-                    sourceCodeCompressed = obj.toByteArray();
+                ByteArrayOutputStream obj = new ByteArrayOutputStream();
+                GZIPOutputStream gzip = new GZIPOutputStream(obj);
+                gzip.write(sourceCode);
+                gzip.flush();
+                gzip.close();
+                sourceCodeCompressed = obj.toByteArray();
 
-            }else{
+            } else {
                 this.sourceCodeCompressed = new byte[buffer.getShort()];
                 buffer.get(this.sourceCodeCompressed);
                 if ((this.sourceCodeCompressed == null) || (this.sourceCodeCompressed.length == 0)) return;
@@ -146,14 +146,14 @@ public class CommandNewWork extends IComputationAttachment {
                             outStr += line + "\n";
                         }
                         this.sourceCode = outStr.getBytes("UTF-8");
-                        if(this.sourceCode.length>MAX_UNCOMPRESSED_WORK_SIZE)
+                        if (this.sourceCode.length > MAX_UNCOMPRESSED_WORK_SIZE)
                             this.sourceCode = new byte[0];
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     this.sourceCode = null;
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             // pass through any error
             this.deadline = 0;
             this.xelPerPow = 0;
@@ -177,11 +177,11 @@ public class CommandNewWork extends IComputationAttachment {
     @Override
     int getMySize() {
         int min = 0;
-        if(sourceCodeCompressed==null)
+        if (sourceCodeCompressed == null)
             min = this.sourceCode.length;
         else
-            min = (this.sourceCode.length<this.sourceCodeCompressed.length)?this.sourceCode.length:this.sourceCodeCompressed.length;
-        return 1+2+8+8+4+4+4+2+min;
+            min = (this.sourceCode.length < this.sourceCodeCompressed.length) ? this.sourceCode.length : this.sourceCodeCompressed.length;
+        return 1 + 2 + 8 + 8 + 4 + 4 + 4 + 2 + min;
     }
 
     @Override
@@ -198,7 +198,7 @@ public class CommandNewWork extends IComputationAttachment {
     void putMyBytes(ByteBuffer buffer) {
 
         boolean compressed = false;
-        if(this.sourceCodeCompressed != null && this.sourceCodeCompressed.length<this.sourceCode.length){
+        if (this.sourceCodeCompressed != null && this.sourceCodeCompressed.length < this.sourceCode.length) {
             compressed = true;
         }
         buffer.put((byte) (compressed ? 0x01 : 0x00));
@@ -209,57 +209,61 @@ public class CommandNewWork extends IComputationAttachment {
         buffer.putInt(this.numberOfIterations);
         buffer.putInt(this.cap_number_pow);
 
-        if(compressed){
+        if (compressed) {
             buffer.putShort((short) this.sourceCodeCompressed.length);
             buffer.put(this.sourceCodeCompressed);
-        }else {
+        } else {
             buffer.putShort((short) this.sourceCode.length);
             buffer.put(this.sourceCode);
         }
     }
 
-    public boolean validatePublic(Transaction transaction){
+    public boolean validatePublic(Transaction transaction) {
         return validate(transaction);
     }
+
     @Override
     boolean validate(Transaction transaction) {
 
 
-
-        if(transaction!=null && transaction.getDeadline()>ComputationConstants.WORK_TRANSACTION_DEADLINE_VALUE) return false;
-        if (((this.sourceCode == null) || (this.sourceCode.length == 0)) && (this.sourceCodeCompressed == null) || (this.sourceCodeCompressed.length == 0)) return false;
-
-        if(!Commons.checkRange(ComputationConstants.DEADLINE_MIN, ComputationConstants.DEADLINE_MAX, this.deadline))
+        if (transaction != null && transaction.getDeadline() > ComputationConstants.WORK_TRANSACTION_DEADLINE_VALUE)
+            return false;
+        if (((this.sourceCode == null) || (this.sourceCode.length == 0)) && (this.sourceCodeCompressed == null) || (this.sourceCodeCompressed.length == 0))
             return false;
 
-        if(!Commons.checkRange(ComputationConstants.XEL_POW_MIN, ComputationConstants.XEL_POW_MAX, this.xelPerPow))
+        if (!Commons.checkRange(ComputationConstants.DEADLINE_MIN, ComputationConstants.DEADLINE_MAX, this.deadline))
             return false;
 
-        if(!Commons.checkRange(ComputationConstants.XEL_BTY_MIN, ComputationConstants.XEL_BTY_MAX, this.xelPerBounty))
+        if (!Commons.checkRange(ComputationConstants.XEL_POW_MIN, ComputationConstants.XEL_POW_MAX, this.xelPerPow))
             return false;
 
-        if(!Commons.checkRange(ComputationConstants.BTY_PER_ITER_MIN, ComputationConstants.BTY_PER_ITER_MAX, this.bountiesPerIteration))
+        if (!Commons.checkRange(ComputationConstants.XEL_BTY_MIN, ComputationConstants.XEL_BTY_MAX, this.xelPerBounty))
             return false;
 
-        if(!Commons.checkRange(ComputationConstants.ITER_MIN, ComputationConstants.ITER_MAX, this.numberOfIterations))
+        if (!Commons.checkRange(ComputationConstants.BTY_PER_ITER_MIN, ComputationConstants.BTY_PER_ITER_MAX, this.bountiesPerIteration))
             return false;
 
-        if(!Commons.checkRange(ComputationConstants.POW_MIN, ComputationConstants.POW_MAX, this.cap_number_pow))
+        if (!Commons.checkRange(ComputationConstants.ITER_MIN, ComputationConstants.ITER_MAX, this.numberOfIterations))
             return false;
+
+        if (!Commons.checkRange(ComputationConstants.POW_MIN, ComputationConstants.POW_MAX, this.cap_number_pow))
+            return false;
+
+        if (this.sourceCode!=null && this.sourceCode.length > MAX_UNCOMPRESSED_WORK_SIZE) return false;
 
         // Now, we have to validate whether the source code makes sense at all and meets the required WCET criteria
         // for the main as well as for the verify part. We can do it with a dummy compute call
         // The reason is, that the compute call will fail if syntax errors are present or if WCET boundaries are violated
         String id = "not yet brdcst";
-        if(transaction!=null){
+        if (transaction != null) {
             id = Long.toUnsignedString(transaction.getId());
         }
-        try{
+        try {
 
             ExecutionEngine e = new ExecutionEngine();
-            byte[] target =  e.getMaximumTargetForTesting();
+            byte[] target = e.getMaximumTargetForTesting();
             target[0] = 0x49; // make it a bit more difficult
-            byte[] publicKey = new byte[]{(byte)0xF1, (byte)0x6D, (byte)0x48, (byte)0x25, (byte)0x0C, (byte)0xE2, (byte)0xA2, (byte)0xA4, (byte)0xFD, (byte)0x4D, (byte)0x9B, (byte)0x08, (byte)0x57, (byte)0x7B, (byte)0x2D, (byte)0x3F, (byte)0x92, (byte)0xC6, (byte)0x4D, (byte)0x09, (byte)0x3C, (byte)0xD9, (byte)0x68, (byte)0xE6, (byte)0xC7, (byte)0x32, (byte)0x5E, (byte)0x40, (byte)0x30, (byte)0xB7, (byte)0xF2, (byte)0x06 };
+            byte[] publicKey = new byte[]{(byte) 0xF1, (byte) 0x6D, (byte) 0x48, (byte) 0x25, (byte) 0x0C, (byte) 0xE2, (byte) 0xA2, (byte) 0xA4, (byte) 0xFD, (byte) 0x4D, (byte) 0x9B, (byte) 0x08, (byte) 0x57, (byte) 0x7B, (byte) 0x2D, (byte) 0x3F, (byte) 0x92, (byte) 0xC6, (byte) 0x4D, (byte) 0x09, (byte) 0x3C, (byte) 0xD9, (byte) 0x68, (byte) 0xE6, (byte) 0xC7, (byte) 0x32, (byte) 0x5E, (byte) 0x40, (byte) 0x30, (byte) 0xB7, (byte) 0xF2, (byte) 0x06};
             long blockId = 123456789;
             long workId = -1;
             byte[] multi = publicKey; // leave it empty ffs
@@ -268,13 +272,13 @@ public class CommandNewWork extends IComputationAttachment {
             storage_size = r.storage_size;
 
             // HERE, DOUBLE CHECK FOR STORAGE SIZE IN CASE IT SLIPPED THROUGH -  IT CAN BE CRITICAL
-            if(storage_size>ComputationConstants.MAX_STORAGE_SIZE){
+            if (storage_size > ComputationConstants.MAX_STORAGE_SIZE) {
                 Logger.logInfoMessage("work package dropped: id=" + id + " (reason: requested storage size is way too high)");
                 return false;
             }
 
             validated = true;
-        }catch(Exception e){
+        } catch (Exception e) {
             Logger.logInfoMessage("work package dropped: id=" + id + " (reason: " + e.getMessage() + ")");
             return false;
         }
@@ -286,8 +290,8 @@ public class CommandNewWork extends IComputationAttachment {
     void apply(Transaction transaction) {
         if ((this.sourceCode == null) || (this.sourceCode.length == 0)) return;
 
-        if(!validated){
-            if(!validate(transaction))
+        if (!validated) {
+            if (!validate(transaction))
                 return;
         }
         // Here, apply the actual package
@@ -296,12 +300,12 @@ public class CommandNewWork extends IComputationAttachment {
     }
 
     public int getStorageSize() {
-        if(storage_size==-1){
-            try{
+        if (storage_size == -1) {
+            try {
                 ExecutionEngine e = new ExecutionEngine();
-                byte[] target =  e.getMaximumTargetForTesting();
+                byte[] target = e.getMaximumTargetForTesting();
                 target[0] = 0x49; // make it a bit more difficult
-                byte[] publicKey = new byte[]{(byte)0xF1, (byte)0x6D, (byte)0x48, (byte)0x25, (byte)0x0C, (byte)0xE2, (byte)0xA2, (byte)0xA4, (byte)0xFD, (byte)0x4D, (byte)0x9B, (byte)0x08, (byte)0x57, (byte)0x7B, (byte)0x2D, (byte)0x3F, (byte)0x92, (byte)0xC6, (byte)0x4D, (byte)0x09, (byte)0x3C, (byte)0xD9, (byte)0x68, (byte)0xE6, (byte)0xC7, (byte)0x32, (byte)0x5E, (byte)0x40, (byte)0x30, (byte)0xB7, (byte)0xF2, (byte)0x06 };
+                byte[] publicKey = new byte[]{(byte) 0xF1, (byte) 0x6D, (byte) 0x48, (byte) 0x25, (byte) 0x0C, (byte) 0xE2, (byte) 0xA2, (byte) 0xA4, (byte) 0xFD, (byte) 0x4D, (byte) 0x9B, (byte) 0x08, (byte) 0x57, (byte) 0x7B, (byte) 0x2D, (byte) 0x3F, (byte) 0x92, (byte) 0xC6, (byte) 0x4D, (byte) 0x09, (byte) 0x3C, (byte) 0xD9, (byte) 0x68, (byte) 0xE6, (byte) 0xC7, (byte) 0x32, (byte) 0x5E, (byte) 0x40, (byte) 0x30, (byte) 0xB7, (byte) 0xF2, (byte) 0x06};
                 long blockId = 123456789;
                 long workId = -1;
                 byte[] multi = publicKey; // leave it empty ffs
@@ -309,7 +313,7 @@ public class CommandNewWork extends IComputationAttachment {
                 ComputationResult r = e.compute(target, publicKey, blockId, multi, workId, storage_id, true);
                 validated = true;
                 storage_size = r.storage_size;
-            }catch(Exception e){
+            } catch (Exception e) {
                 return -1;
             }
         }

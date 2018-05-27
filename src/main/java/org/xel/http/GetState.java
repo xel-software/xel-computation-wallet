@@ -69,8 +69,6 @@ public final class GetState extends APIServlet.APIRequestHandler {
             response.put("numberOfPolls", Poll.getCount());
             response.put("numberOfVotes", Vote.getCount());
             response.put("numberOfPrunableMessages", PrunableMessage.getCount());
-            response.put("numberOfTaggedData", TaggedData.getCount());
-            response.put("numberOfDataTags", TaggedData.Tag.getTagCount());
             response.put("numberOfAccountLeases", Account.getAccountLeaseCount());
             response.put("numberOfActiveAccountLeases", Account.getActiveLeaseCount());
             response.put("numberOfPhasingOnlyAccounts", AccountRestrictions.PhasingOnly.getCount());
@@ -86,7 +84,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("isOffline", Constants.isOffline);
         response.put("needsAdminPassword", !API.disableAdminPassword);
 
-        response.put("lastBlock", GetLastBlockId.getLastBlock());
+        response.put("lastBlock", Long.toUnsignedString(GetLastBlockId.getLastBlock()));
         response.put("lastBlockComputation", GetLastBlockId.getLastBlockComputational());
 
         if (includeTasks) {

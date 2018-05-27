@@ -495,34 +495,6 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject taggedData(TaggedData taggedData, boolean includeData) {
-        JSONObject json = new JSONObject();
-        json.put("transaction", Long.toUnsignedString(taggedData.getId()));
-        putAccount(json, "account", taggedData.getAccountId());
-        json.put("name", taggedData.getName());
-        json.put("description", taggedData.getDescription());
-        json.put("tags", taggedData.getTags());
-        JSONArray tagsJSON = new JSONArray();
-        Collections.addAll(tagsJSON, taggedData.getParsedTags());
-        json.put("parsedTags", tagsJSON);
-        json.put("type", taggedData.getType());
-        json.put("channel", taggedData.getChannel());
-        json.put("filename", taggedData.getFilename());
-        json.put("isText", taggedData.isText());
-        if (includeData) {
-            json.put("data", taggedData.isText() ? Convert.toString(taggedData.getData()) : Convert.toHexString(taggedData.getData()));
-        }
-        json.put("transactionTimestamp", taggedData.getTransactionTimestamp());
-        json.put("blockTimestamp", taggedData.getBlockTimestamp());
-        return json;
-	}
-
-    static JSONObject dataTag(TaggedData.Tag tag) {
-        JSONObject json = new JSONObject();
-        json.put("tag", tag.getTag());
-        json.put("count", tag.getCount());
-        return json;
-    }
 
     static JSONObject apiRequestHandler(APIServlet.APIRequestHandler handler) {
         JSONObject json = new JSONObject();

@@ -35,7 +35,7 @@ public class MessageEncryptionTest extends BlockchainTest {
 
     @Test
     public void encryptText() {
-        JSONStreamAware json = JSONResponses.INCORRECT_ALIAS;
+        JSONStreamAware json = JSONResponses.INCORRECT_ACCOUNT;
         EncryptedData encryptedData = encrypt(Convert.toBytes(json.toString()));
         Assert.assertEquals(json.toString(), Convert.toString(decrypt(encryptedData)));
     }
