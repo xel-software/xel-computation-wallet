@@ -53,6 +53,8 @@ var NRS = (function(NRS, $, undefined) {
 		$("#login_username").mask("XEL-****-****-****-*****");
         $("#login_account_other").mask("XEL-****-****-****-*****");
         
+        var loginError = $("#login_error");
+		loginError.hide();
 
         $("#login_username").keypress(function(e) {
 			if (e.which == '13') {
@@ -66,6 +68,7 @@ var NRS = (function(NRS, $, undefined) {
             $(".mobile-only").show();
         }
         $("#login_panel").show();
+        $("#phrase_warning_initial").show();
         $('#login_account_container_other').hide();
 	};
 
@@ -111,6 +114,7 @@ var NRS = (function(NRS, $, undefined) {
 				$loaded.show();
 
 				PassPhraseGenerator.generatePassPhrase("#account_phrase_generator_panel");
+				
 			}).fail(function() {
 				alert($.t("error_word_list"));
 			});
@@ -119,6 +123,7 @@ var NRS = (function(NRS, $, undefined) {
 			$loaded.show();
 
 			PassPhraseGenerator.generatePassPhrase("#account_phrase_generator_panel");
+			
 		}
 	};
 
@@ -207,7 +212,10 @@ var NRS = (function(NRS, $, undefined) {
 		NRS.accountInfo = {};
 
 		// Reset other functional state
-		$("#account_balance, #account_balance_sidebar, #account_nr_assets, #account_assets_balance, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
+		$("#account_nr_assets, #account_assets_balance, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
+		$("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(0));
+
+
 		$("#id_search").find("input[name=q]").val("");
 		NRS.resetAssetExchangeState();
 		NRS.resetPollsState();
@@ -283,12 +291,43 @@ var NRS = (function(NRS, $, undefined) {
         NRS.setStrItem("savedNxtAccounts", accountsStr + account + ";");
     }
 
+	NRS.updateAccountFieldDefered = function(){
+    	console.log("CURRENT PASSPH " + $("#login_username").val(""));
+    	if($('#login_password').val() == ""){
+    		$("#login_username").val("");
+    	}else{
+    		var mid = NRS.getAccountId($('#login_password').val());
+    		var addr = new NxtAddress();
+			addr.set(mid);
+    		$("#login_username").val(addr.toString());
+    	}
+    }
+
+    var tma=null;
+
+    NRS.updateAccountField = function(){
+    	if(tma != null)
+    		clearTimeout(tma);
+    	tma=setTimeout(NRS.updateAccountFieldDefered, 500);
+    }
+
+    NRS.goback = function() {
+    	$('#phrase_warning_initial').show();
+    	var loginError = $("#login_error");
+    	loginError.hide();
+    	var loginCheckPasswordLength = $("#login_check_password_length");
+    	loginCheckPasswordLength.val(1);
+    }
+
+  
+
     // id can be either account id or passphrase
     NRS.login = function(isPassphraseLogin, id, callback, isAccountSwitch, isSavedPassphrase) {
 		console.log("login isPassphraseLogin = " + isPassphraseLogin +
 			", isAccountSwitch = " + isAccountSwitch +
 			", isSavedPassphrase = " + isSavedPassphrase);
         NRS.spinner.spin($("#center")[0]);
+        console.log("Logging in");
         if (isPassphraseLogin && !isSavedPassphrase){
 			var loginCheckPasswordLength = $("#login_check_password_length");
 			
@@ -302,7 +341,17 @@ var NRS = (function(NRS, $, undefined) {
 			} else if (!NRS.isTestNet && id.length < 12 && loginCheckPasswordLength.val() == 1) {
 				loginCheckPasswordLength.val(0);
 				var loginError = $("#login_error");
-				loginError.find(".callout").html($.t("error_passphrase_login_length"));
+				var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button><button class="btn btn-success" onclick="NRS.login(1,$(\'#login_password\').val());return false;" data-i18n="risky">I Understand the Risk</button></div>';
+				loginError.find(".callout").html($.t("error_passphrase_login_length") + buttons);
+				loginError.show();
+				$("#phrase_warning_initial").hide();
+                NRS.spinner.stop();
+				return;
+			} else if (!NRS.isTestNet && id!=id.trim()) {
+				loginCheckPasswordLength.val(0);
+				var loginError = $("#login_error");
+				var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button><button class="btn btn-success" onclick="NRS.login(1,$(\'#login_password\').val());return false;" data-i18n="risky2">It Was Intentional</button></div>';
+				loginError.find(".callout").html($.t("error_whitespace_login_length") + buttons);
 				loginError.show();
 				$("#phrase_warning_initial").hide();
                 NRS.spinner.stop();
@@ -312,7 +361,6 @@ var NRS = (function(NRS, $, undefined) {
 			
 			loginCheckPasswordLength.val(1);
 		}
-
 		console.log("login calling getBlockchainStatus");
 		NRS.sendRequest("getBlockchainStatus", {}, function(response) {
 			if (response.errorCode) {
@@ -339,9 +387,11 @@ var NRS = (function(NRS, $, undefined) {
 				if (!response.errorCode) {
 
 
-					if(!NRS.newlyCreatedAccount && isPassphraseLogin && !document.getElementById('ignore_check').checked && $("#login_username").val() != NRS.escapeRespStr(response.accountRS)){
+					if(!NRS.newlyCreatedAccount && isPassphraseLogin && $("#login_username").val() != NRS.escapeRespStr(response.accountRS)){
 						var loginError = $("#login_error");
-						loginError.find(".callout").html($.t("error_passphrase_login_mismatch"));
+						var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button></div>';
+
+						loginError.find(".callout").html($.t("error_passphrase_login_mismatch")+buttons);
 						loginError.show();
 						$("#phrase_warning_initial").hide();
 		                NRS.spinner.stop();
@@ -414,10 +464,6 @@ var NRS = (function(NRS, $, undefined) {
 					}
                     $("#sidebar_block_link").html(NRS.getBlockLink(NRS.lastBlockHeight));
 
-                    var canvas_title = CryptoJS.SHA1(String(NRS.account));
-					var cobj = document.getElementById("canvas_hash");
-					cobj.setAttribute("data-jdenticon-hash",canvas_title);
-					this.jdenticon();
 					
 					var passwordNotice = "";
 

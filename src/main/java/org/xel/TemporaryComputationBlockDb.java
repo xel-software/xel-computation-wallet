@@ -300,20 +300,6 @@ final class TemporaryComputationBlockDb {
         }
     }
 
-    static void updateBlockLocallyProcessed(BlockImpl block) {
-        try {
-            try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("UPDATE block_comp SET locally_processed = ? WHERE id = ?")) {
-                int i = 0;
-                pstmt.setBoolean(++i, true);
-                pstmt.setLong(++i, block.getId());
-                pstmt.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
-    }
-
     static void updateBlockPowTargets(BlockImpl block) {
         try {
             try (Connection con = Db.db.getConnection();

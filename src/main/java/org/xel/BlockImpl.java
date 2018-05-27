@@ -142,10 +142,25 @@ final class BlockImpl implements Block {
         this.blockTransactions = blockTransactions;
     }
 
-    @Override
-    public void setLocallyProcessed() {
-        TemporaryComputationBlockDb.updateBlockLocallyProcessed(this);
-        TemporaryComputationBlockDb.updateBlockPowTargets(this);
+    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
+              byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long
+                      nextBlockId, int height, long id,
+              List<TransactionImpl> blockTransactions) {
+        this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+                null, generationSignature, blockSignature, previousBlockHash, null);
+        this.cumulativeDifficulty = cumulativeDifficulty;
+        this.baseTarget = baseTarget;
+        this.powTarget = powTarget;
+        this.powLastMass = powLastMass;
+        this.powMass = powMass;
+        this.targetLastMass = targetLastMass;
+        this.targetMass = targetMass;
+        this.nextBlockId = nextBlockId;
+        this.height = height;
+        this.id = id;
+        this.generatorId = generatorId;
+        this.blockTransactions = blockTransactions;
     }
 
     @Override
@@ -614,6 +629,31 @@ final class BlockImpl implements Block {
     void apply() {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(getGeneratorPublicKey());
+        long totalBackFees = 0;
+        if (this.height > Constants.SHUFFLING_BLOCK) {
+            long[] backFees = new long[3];
+            for (TransactionImpl transaction : getTransactions()) {
+                long[] fees = transaction.getBackFees();
+                for (int i = 0; i < fees.length; i++) {
+                    backFees[i] += fees[i];
+                }
+            }
+            for (int i = 0; i < backFees.length; i++) {
+                if (backFees[i] == 0) {
+                    break;
+                }
+                totalBackFees += backFees[i];
+                Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
+                Logger.logDebugMessage("Back fees %f XEL to forger at height %d", ((double)backFees[i])/Constants.ONE_NXT, this.height - i - 1);
+                previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
+                previousGeneratorAccount.addToForgedBalanceNQT(backFees[i]);
+            }
+        }
+        if (totalBackFees != 0) {
+            Logger.logDebugMessage("Fee reduced by %f XEL at height %d", ((double)totalBackFees)/Constants.ONE_NXT, this.height);
+        }
+        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
+        generatorAccount.addToForgedBalanceNQT(totalFeeNQT - totalBackFees);
     }
 
     void applyComputational() {
@@ -650,7 +690,7 @@ final class BlockImpl implements Block {
             this.height = 0;
         }
         short index = 0;
-        for (TransactionImpl transaction : getTransactions()) {
+        for (TransactionImpl transaction : getTransactionsComputational()) {
             transaction.setBlock(this);
             transaction.setIndex(index++);
         }
@@ -671,7 +711,7 @@ final class BlockImpl implements Block {
     }
 
     private void computationalBaseTarget(BlockImpl previousBlock){
-        cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(previousBlock.baseTarget)));
+        cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(BigInteger.ONE);
     }
 
     private void calculateBaseTarget(BlockImpl previousBlock) {
@@ -714,7 +754,7 @@ final class BlockImpl implements Block {
         } else {
             baseTarget = prevBaseTarget;
         }
-        cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(BigInteger.ONE);
+        cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
     }
 
 

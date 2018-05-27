@@ -19,16 +19,15 @@
     <div class="user-panel-narrow">
         <div class="pull-left info">
             <div class="pull-left info">
-                <canvas width="128" height="128" id="canvas_hash" data-jdenticon-hash="" style="padding-left: 10px;"></canvas>
-
-                <br><br>
-
+              <div class="uberbig">
+                <span style="color:#fff;" id="account_balance_sidebar">N/A</span>
+              </div>
                 <div class="badge-active" style="padding:3px;margin-bottom:5px;font-size:12px" id="sidebar_account_id"></div>
                 <div style="margin-bottom:5px;">
                     <span><a class='btn btn-default btn-xs' href="#" id="account_name" data-toggle="modal" data-target="#account_info_modal" data-i18n="set_account_info">Info</a></span>
                     <span id="sidebar_account_link"></span>
                     <span ><a class='btn btn-default btn-xs' href="#" id="copy_account_id" data-clipboard-target="#sidebar_account_id"><span class="fa fa-copy"></span></a></span>
-                    <span><a class='btn btn-default btn-xs' href="#" data-toggle="modal" data-target="#redeem_modal" data-i18n="claim_xel">Redeem</a></span>
+                    <span><a class='btn btn-default btn-xs' href="#" data-toggle="modal" data-target="#redeem_modal"><span class="fa fa-bitcoin"></span></a></span>
                 </div>
                 <div style="margin-bottom:5px;">
                     <div id="account_id_dropdown" class="btn-group">
@@ -45,7 +44,7 @@
     <div class="user-panel"></div>
     <form action="#" method="get" class="sidebar-form" id="id_search" autocomplete="off">
         <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Search by ID..." data-i18n="[placeholder]search_by_id">
+            <input type="text" name="q" class="form-control purplish" placeholder="Search by ID..." data-i18n="[placeholder]search_by_id">
             <span class="input-group-btn">
                 <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button>
             </span>

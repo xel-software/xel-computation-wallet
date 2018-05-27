@@ -414,7 +414,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             }
             transaction.validate();
             UnconfirmedTransaction unconfirmedTransaction = new UnconfirmedTransaction((TransactionImpl) transaction, System.currentTimeMillis());
-            boolean broadcastLater = TemporaryComputationBlockchainProcessorImpl.getInstance().isProcessingBlock();
+            boolean broadcastLater = BlockchainProcessorImpl.getInstance().isProcessingBlock();
             if (broadcastLater) {
                 waitingTransactions.add(unconfirmedTransaction);
                 broadcastedTransactions.add((TransactionImpl) transaction);

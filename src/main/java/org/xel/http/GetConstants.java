@@ -61,9 +61,12 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                         TransactionType transactionType = TransactionType.findTransactionType((byte) type, (byte) subtype);
                         if (transactionType == null) {
                             if (subtype == 0) {
-                                break outer;
+                               break outer;
                             } else {
-                                break;
+                                if(subtype>=10)
+                                    break;
+                                else
+                                    continue;
                             }
                         }
                         JSONObject subtypeJSON = new JSONObject();
@@ -72,8 +75,8 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                         subtypeJSON.put("mustHaveRecipient", transactionType.mustHaveRecipient());
                         subtypeJSON.put("isPhasingSafe", transactionType.isPhasingSafe());
                         subtypeJSON.put("isPhasable", transactionType.isPhasable());
-                        subtypeJSON.put("type", type);
-                        subtypeJSON.put("subtype", subtype);
+                        subtypeJSON.put("type", transactionType.getType());
+                        subtypeJSON.put("subtype", transactionType.getSubtype());
                         subtypesJSON.put(subtype, subtypeJSON);
                         transactionSubTypesJSON.put(transactionType.getName(), subtypeJSON);
                     }
@@ -116,7 +119,7 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                     peerStates.put(peerState.toString(), peerState.ordinal());
                 }
                 response.put("peerStates", peerStates);
-                response.put("maxTaggedDataDataLength", Constants.MAX_TAGGED_DATA_DATA_LENGTH);
+                response.put("maxTaggedDataDataLength", Constants.MAX_UPLOAD_SERVLET_LENGTH);
 
                 JSONObject requestTypes = new JSONObject();
                 for (Map.Entry<String, APIServlet.APIRequestHandler> handlerEntry : APIServlet.apiRequestHandlers.entrySet()) {

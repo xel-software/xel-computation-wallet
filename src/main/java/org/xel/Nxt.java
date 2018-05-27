@@ -50,8 +50,8 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "5.1.0";
-    public static final String APPLICATION = "XEL Evo";
+    public static final String VERSION = "3.2.0";
+    public static final String APPLICATION = "XEL (Beta)";
 
     private static volatile Time time = new Time.EpochTime();
 
@@ -397,7 +397,6 @@ public final class Nxt {
                 Account.init();
                 AccountRestrictions.init();
                 AccountLedger.init();
-                Hub.init();
                 Poll.init();
                 PhasingPoll.init();
                 Redeem.init();
@@ -406,7 +405,6 @@ public final class Nxt {
                 PowAndBounty.init();
                 PhasingVote.init();
                 PrunableMessage.init();
-                TaggedData.init();
                 Peers.init();
                 APIProxy.init();
                 Generator.init();
@@ -451,6 +449,7 @@ public final class Nxt {
                 Logger.logMessage("Nxt server " + VERSION + " started successfully.");
                 Logger.logMessage("Copyright © 2013-2016 The Nxt Core Developers.");
                 Logger.logMessage("Copyright © 2016-2017 Jelurida IP B.V.");
+                Logger.logMessage("Copyright © 2018 XEL Development Team.");
                 Logger.logMessage("Distributed under GPLv2, with ABSOLUTELY NO WARRANTY.");
                 if (API.getWelcomePageUri() != null) {
                     Logger.logMessage("Client UI is at " + API.getWelcomePageUri());

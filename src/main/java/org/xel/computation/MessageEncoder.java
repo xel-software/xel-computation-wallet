@@ -170,20 +170,16 @@ public class MessageEncoder {
 
 
     static void paymentProcessor(Block block){
-
-        Logger.logDebugMessage("Beginning to handle payouts!");
         List<Pair<Long,Long>> allPaid = new ArrayList<>();
         for(Transaction t : block.getTransactions()) {
             allPaid.addAll(MessageEncoder.extractPaymentsFromTX(t));
         }
-
         // Set all paid
         for(Pair<Long, Long> l : allPaid){
             PowAndBounty bty = PowAndBounty.getPowOrBountyById(l.getElement0());
             Work w = Work.getWorkById(l.getElement1());
             if (bty!=null) {
                 bty.setWas_paid(true);
-                Logger.logDebugMessage("BTY paid " + bty.getId());
                 bty.JustSave();
             } else break;
         }
@@ -280,7 +276,6 @@ public class MessageEncoder {
             }
         }
         block.calculatePowTarget(powCounter, mintime, maxtime);
-        block.setLocallyProcessed();
         // and clean the stupidLimiters
         stupidLimiterPow.clear();
         stupidLimiterBty.clear();

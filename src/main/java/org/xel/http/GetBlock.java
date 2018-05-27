@@ -45,8 +45,12 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
         String timestampValue = Convert.emptyToNull(req.getParameter("timestamp"));
         if (blockValue != null) {
             try {
-                blockData = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(blockValue));
+                if(blockValue.startsWith("-"))
+                    blockData = Nxt.getBlockchain().getBlock(Long.parseLong(blockValue));
+                else
+                    blockData = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(blockValue));
             } catch (RuntimeException e) {
+                e.printStackTrace();
                 return INCORRECT_BLOCK;
             }
         } else if (heightValue != null) {

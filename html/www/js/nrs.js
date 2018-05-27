@@ -1096,6 +1096,8 @@ NRS.addPagination = function () {
 			if (response.errorCode) {
 				NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
 				$("#account_balance, #account_balance_sidebar, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
+				$("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(0));
+
                 NRS.updateDashboardMessage();
 			} else {
 				if (NRS.accountRS && NRS.accountInfo.accountRS != NRS.accountRS) {

@@ -332,14 +332,14 @@ var NRS = (function(NRS, $, undefined) {
 						if (finished) {
 							if (responsePoll.approved) {
 								state = "success";
-								color = "#00a65a";
+								color = "#52bef4";
 							} else {
 								state = "danger";
-								color = "#f56954";
+								color = "hsl(330, 65%, 55%) !important";
 							}
 						} else {
 							state = "warning";
-							color = "#f39c12";
+							color = "hsl(330, 65%, 55%) !important";
 						}
 
 						var $popoverTable = $("<table class='table table-striped'></table>");
@@ -464,7 +464,7 @@ var NRS = (function(NRS, $, undefined) {
 				amount = new BigInteger(t.amountNQT);
 				sign = 1;
 			}
-			feeColor = "color:black;";
+			feeColor = "color:white;";
 		} else {
 			if (t.sender != t.recipient) {
 				if (t.amountNQT != "0") {
@@ -477,14 +477,14 @@ var NRS = (function(NRS, $, undefined) {
 					amount = new BigInteger(t.amountNQT); // send to myself
 				}
 			}
-			feeColor = "color:red;";
+			feeColor = "color:hsl(330, 65%, 55%) !important;";
 		}
 		var formattedAmount = "";
 		if (amount != "") {
 			formattedAmount = NRS.formatAmount(amount, false, false, decimals.amount);
 		}
 		var formattedFee = NRS.formatAmount(fee, false, false, decimals.fee);
-		var amountColor = (sign == 1 ? "color:green;" : (sign == -1 ? "color:red;" : "color:black;"));
+		var amountColor = (sign == 1 ? "color:#cbffb7;" : (sign == -1 ? "color:hsl(330, 65%, 55%) !important;" : "color:ffffff;"));
 		var hasMessage = false;
 
 		if (t.attachment) {
@@ -509,7 +509,7 @@ var NRS = (function(NRS, $, undefined) {
         html += "<td style='vertical-align:middle;text-align:right;" + amountColor + "'>" + formattedAmount + "</td>";
         html += "<td style='vertical-align:middle;text-align:right;" + feeColor + "'>" + formattedFee + "</td>";
 		html += "<td style='vertical-align:middle;'>" + ((NRS.getAccountLink(t, "sender") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "sender")) + " ";
-		html += "<i class='fa fa-arrow-circle-right' style='color:#777;'></i> " + ((NRS.getAccountLink(t, "recipient") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "recipient")) + "</td>";
+		html += "<i class='fa fa-arrow-circle-right' style='color:#fff;'></i> " + ((NRS.getAccountLink(t, "recipient") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "recipient")) + "</td>";
 		html += "<td class='td_transaction_phasing' style='min-width:100px;vertical-align:middle;text-align:center;'></td>";
 		html += "<td style='vertical-align:middle;text-align:center;'>" + (t.confirmed ? NRS.getBlockLink(t.height, null, true) : "-") + "</td>";
 		html += "<td class='confirmations' style='vertical-align:middle;text-align:center;font-size:12px;'>";

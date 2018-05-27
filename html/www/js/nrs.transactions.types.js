@@ -61,11 +61,6 @@ var NRS = (function(NRS, $, undefined) {
                     'i18nKeyTitle': 'vote_casting',
                     'iconHTML': "<i class='fa fa-check'></i>"
                 },
-                3: {
-                    'title': "Hub Announcement",
-                    'i18nKeyTitle': 'hub_announcement',
-                    'iconHTML': "<i class='ion-radio-waves'></i>"
-                },
                 4: {
                     'title': "Account Info",
                     'i18nKeyTitle': 'account_info',
@@ -95,23 +90,6 @@ var NRS = (function(NRS, $, undefined) {
                     'i18nKeyTitle': 'phasing_only',
                     'iconHTML': '<i class="fa fa-gavel"></i>',
                     'receiverPage': "transactions"
-                }
-            }
-        },
-        3: {
-            'title': "Data Cloud",
-            'i18nKeyTitle': 'tagged_data',
-            'iconHTML': '<i class="fa fa-dashboard"></i>',
-            'subTypes': {
-                0: {
-                    'title': "Upload Data",
-                    'i18nKeyTitle': 'upload_tagged_data',
-                    'iconHTML': '<i class="fa fa-upload"></i>'
-                },
-                1: {
-                    'title': "Extend Data Lifetime",
-                    'i18nKeyTitle': 'extend_tagged_data',
-                    'iconHTML': '<i class="fa fa-expand"></i>'
                 }
             }
         }
