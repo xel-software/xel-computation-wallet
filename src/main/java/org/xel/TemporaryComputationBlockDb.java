@@ -407,8 +407,8 @@ final class TemporaryComputationBlockDb {
              Statement stmt = con.createStatement()) {
             try {
                 stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
-                stmt.executeUpdate("TRUNCATE TABLE transaction");
-                stmt.executeUpdate("TRUNCATE TABLE block");
+                stmt.executeUpdate("TRUNCATE TABLE transaction_comp");
+                stmt.executeUpdate("TRUNCATE TABLE block_comp");
                 TemporaryComputationBlockchainProcessorImpl.getInstance().getDerivedTables().forEach(table -> {
                     if (table.isPersistent()) {
                         try {

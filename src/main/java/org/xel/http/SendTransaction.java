@@ -93,7 +93,7 @@ public final class SendTransaction extends APIServlet.APIRequestHandler {
 
         }else{
             try {
-                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON);
+                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON, true);
                 Transaction transaction = builder.buildComputation(0);
                 transaction.validateComputational();
                 if(!transaction.verifySignature()){

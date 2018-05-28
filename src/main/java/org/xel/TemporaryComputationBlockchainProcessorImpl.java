@@ -980,6 +980,21 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
         }
     }
 
+    public void fullResetNoGenesis() {
+        blockchain.writeLock();
+        try {
+            try {
+                setGetMoreBlocks(false);
+                scheduleScan(0, false);
+                TemporaryComputationBlockDb.deleteAll();
+            } finally {
+                setGetMoreBlocks(true);
+            }
+        } finally {
+            blockchain.writeUnlock();
+        }
+    }
+
     @Override
     public void setGetMoreBlocks(boolean getMoreBlocks) {
         this.getMoreBlocks = getMoreBlocks;
@@ -1010,11 +1025,12 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
             Logger.logMessage("Computationchain: Last block height: " + lastBlock.getHeight());
             return false;
         }
+        fullResetNoGenesis();
         Logger.logMessage("Computationchain: Genesis block not in database, starting from scratch");
         try {
             List<TransactionImpl> transactions = new ArrayList<>();
             MessageDigest digest = Crypto.sha256();
-            BlockImpl genesisBlock = new BlockImpl(getBlockVersion(0), 139341884, 0, 0, 0, 0, digest.digest(),
+            BlockImpl genesisBlock = new BlockImpl(getBlockVersion(0), 139341885, 0, 0, 0, 0, digest.digest(),
                     Genesis.CREATOR_PUBLIC_KEY, new byte[64], new byte[32], new byte[32], transactions);
             Logger.logInfoMessage("Computationchain: Creating Genesisblock with ID = " + genesisBlock.getStringId() + " [signed representation = " + genesisBlock.getId() + ", t = " + genesisBlock.getTimestamp() + "]");
             System.out.println(genesisBlock.getJSONObject().toJSONString());
