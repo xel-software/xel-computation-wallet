@@ -72,6 +72,7 @@ public final class Constants {
         public static final int ALLOW_FAKE_FORGING_ON_REDEEM_UNTIL_BLOCK = 5000;
         public static final long MAX_UPLOAD_SERVLET_LENGTH = 1024*48;
         public static int MAX_COMPU_MESSAGE_LENGTH = 256*1024; //256kb
+        public static int MAX_CONCURRENT_JOBS_PER_USER = 5;
 
     static {
             int maxPrunableLifetime = Nxt.getIntProperty("nxt.maxPrunableLifetime");
@@ -139,6 +140,13 @@ public final class Constants {
             MAINNET_PARAMS = MainNetParams.get();
         }
 
+
+        // Checksum Stuff
+        public static final int CHECKSUM_100000 = 100000;
+        public static final int CHECKSUM_200000 = 200000;
+        public static final int CHECKSUM_300000 = 300000;
+        public static final int CHECKSUM_338155 = 338155;
+        // Checksum Stuff end
 
 
         public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";

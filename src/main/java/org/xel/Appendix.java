@@ -199,6 +199,13 @@ public interface Appendix {
             return new Message(attachmentData);
         }
 
+        static Message parse(JSONObject attachmentData, boolean computational) {
+            if (!hasAppendix(appendixName, attachmentData)) {
+                return null;
+            }
+            return new Message(attachmentData, computational);
+        }
+
         private static final Fee MESSAGE_FEE = new Fee.SizeBasedFee(0, Constants.TENTH_NXT, 32) {
             @Override
             public int getSize(TransactionImpl transaction, Appendix appendage) {
@@ -225,9 +232,34 @@ public interface Appendix {
                 throw new NxtException.NotValidException("Message is not UTF-8 text");
             }
         }
+
+        Message(ByteBuffer buffer, byte transactionVersion, boolean computational) throws NxtException.NotValidException {
+            super(buffer, transactionVersion);
+            int messageLength = buffer.getInt();
+            this.isText = messageLength < 0; // ugly hack
+            if (messageLength < 0) {
+                messageLength &= Integer.MAX_VALUE;
+            }
+            if (messageLength > Constants.MAX_COMPU_MESSAGE_LENGTH) {
+                throw new NxtException.NotValidException("Invalid (computational) arbitrary message length: " + messageLength);
+            }
+            this.message = new byte[messageLength];
+            buffer.get(this.message);
+            if (isText && !Arrays.equals(message, Convert.toBytes(Convert.toString(message)))) {
+                throw new NxtException.NotValidException("Message is not UTF-8 text");
+            }
+        }
+
         void validateComputation(Transaction transaction) throws NxtException.ValidationException {
         }
         Message(JSONObject attachmentData) {
+            super(attachmentData);
+            String messageString = (String)attachmentData.get("message");
+            this.isText = Boolean.TRUE.equals(attachmentData.get("messageIsText"));
+            this.message = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
+        }
+
+        Message(JSONObject attachmentData, boolean computational) {
             super(attachmentData);
             String messageString = (String)attachmentData.get("message");
             this.isText = Boolean.TRUE.equals(attachmentData.get("messageIsText"));

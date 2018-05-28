@@ -222,6 +222,36 @@ public class CommandNewWork extends IComputationAttachment {
         return validate(transaction);
     }
 
+
+    public void checkAccountRestrictions(long senderId) throws NxtException.NotValidException {
+        // See if account is known on the main chain
+        Account acc = Account.getAccount(senderId);
+        if(acc == null){
+            throw new NxtException.NotValidException("Account is not known on the main chain or has balance zero.");
+        }
+
+        // Check if account already has more than MAX_CONCURRENT_JOBS_PER_USER works open
+        int openCount = Work.getActiveCount(acc.getId());
+        if(openCount>=Constants.MAX_CONCURRENT_JOBS_PER_USER){
+            throw new NxtException.NotValidException("This account already has " + Constants.MAX_CONCURRENT_JOBS_PER_USER + " or more jobs running, wait until some of them are finished.");
+        }
+
+        // Check if Balance is fine
+        long currentGrabsOpen = Work.getGrabsByUser(senderId); // this is the amout STILL open in all open works by the user
+        long currentBalance = acc.getBalanceNQT();
+        long thisJobWillCost = xelPerPow * cap_number_pow + (numberOfIterations*bountiesPerIteration*xelPerBounty);
+        long totalBalanceRequired = currentGrabsOpen + thisJobWillCost;
+
+        if(totalBalanceRequired<currentGrabsOpen || totalBalanceRequired<thisJobWillCost){
+            throw new NxtException.NotValidException("No integer overflow attacks please, kiddo!");
+        }
+        if(totalBalanceRequired<currentBalance){
+            throw new NxtException.NotValidException("You should top up your XEL balance, there is no way you could pay for this (and other jobs) at the moment.");
+        }
+
+    }
+
+
     @Override
     boolean validate(Transaction transaction) {
 
@@ -250,6 +280,14 @@ public class CommandNewWork extends IComputationAttachment {
             return false;
 
         if (this.sourceCode!=null && this.sourceCode.length > MAX_UNCOMPRESSED_WORK_SIZE) return false;
+
+        // Check if account restrictions kick in
+        try{
+            this.checkAccountRestrictions(transaction.getSenderId());
+        }catch(NxtException.NotValidException e){
+            Logger.logInfoMessage("work package dropped: (reason: did not meet account requirements)");
+            return false;
+        }
 
         // Now, we have to validate whether the source code makes sense at all and meets the required WCET criteria
         // for the main as well as for the verify part. We can do it with a dummy compute call

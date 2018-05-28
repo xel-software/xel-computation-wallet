@@ -441,6 +441,13 @@ public final class JSONResponses {
         return JSON.prepare(response);
     }
 
+    static JSONStreamAware WORK_SCREWED(String screwedUpReason) {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 50000);
+        response.put("errorDescription", "Work error: " + screwedUpReason);
+        return JSON.prepare(response);
+    }
+
     static JSONStreamAware unknownAccount(long id) {
         JSONObject response = new JSONObject();
         response.put("errorCode", 5);

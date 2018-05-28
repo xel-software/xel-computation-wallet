@@ -264,6 +264,23 @@ public final class Work {
         return grabs;
     }
 
+    public static long getGrabsByUser(long sender_account_id) {
+        long grabs = 0;
+        try(DbIterator<Work> it = Work.getActiveWorkByUser(sender_account_id)){
+            while(it.hasNext()){
+                Work w = (it.next());
+                grabs += w.getXel_per_pow() * (w.getCap_number_pow()-w.getReceived_pows()) + (w.getIterations_left()*w.bounty_limit_per_iteration*w.xel_per_bounty - w.received_bounties*w.xel_per_bounty);
+            }
+        }
+        return grabs;
+    }
+
+
+    public static DbIterator<Work> getActiveWorkByUser(long accountId) {
+        return Work.workTable.getManyBy(
+                new DbClause.BooleanClause("closed", false).and(new DbClause.LongClause("sender_account_id", accountId)), 0,
+                Integer.MAX_VALUE);
+    }
 
     public static int getActiveCount(long accountId) {
         return Work.workTable.getCount(new DbClause.LongClause("sender_account_id", accountId).and(new DbClause.BooleanClause("closed", false)));
@@ -445,6 +462,24 @@ public final class Work {
         Work.listeners.notify(this, Event.WORK_BOUNTY_RECEIVED);
     }
 
+    public void canAccountStillPayForThisJob(long accountId) throws NxtException.NotValidException {
+        // See if account is known on the main chain
+        Account acc = Account.getAccount(accountId);
+        if(acc == null){
+            throw new NxtException.NotValidException("Account is not known on the main chain or has balance zero.");
+        }
+
+        // Check if Balance is fine
+        long currentGrabsOpen = Work.getGrabsByUser(accountId); // this is the amout STILL open in all open works by the user
+        long currentBalance = acc.getBalanceNQT();
+        long totalBalanceRequired = currentGrabsOpen;
+
+        if(totalBalanceRequired<currentBalance){
+            throw new NxtException.NotValidException("You should top up your XEL balance, there is no way you could pay for this (and other jobs) at the moment.");
+        }
+
+    }
+
     private void CheckForAutoClose(Block bl) {
         if(this.closed == false) {
             if(this.originating_height + this.blocksRemaining == bl.getHeight()){
@@ -454,6 +489,17 @@ public final class Work {
                 Work.workTable.insert(this);
                 Work.listeners.notify(this, Event.WORK_TIMEOUTED);
                 Logger.logInfoMessage("work automatically closed due to timeout: id=" + Long.toUnsignedString(this.id));
+            }
+
+            try{
+                canAccountStillPayForThisJob(this.sender_account_id);
+            } catch (NxtException.NotValidException e) {
+                this.closed = true;
+                this.cancelled = true;
+                this.closing_timestamp = bl.getTimestamp();
+                Work.workTable.insert(this);
+                Work.listeners.notify(this, Event.WORK_CANCELLED);
+                Logger.logInfoMessage("work automatically closed due to a low balance");
             }
         }
     }

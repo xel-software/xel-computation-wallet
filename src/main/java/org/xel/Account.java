@@ -573,7 +573,6 @@ public final class Account {
         return account;
     }
 
-
     public static Account getAccount(byte[] publicKey) {
         long accountId = getId(publicKey);
         Account account = getAccount(accountId);
@@ -1153,6 +1152,9 @@ public final class Account {
         }
         if (unconfirmed < 0) {
             throw new DoubleSpendingException("Negative unconfirmed balance or quantity: ", accountId, confirmed, unconfirmed);
+        }
+        if (unconfirmed > confirmed) {
+            throw new DoubleSpendingException("Unconfirmed exceeds confirmed balance or quantity: ", accountId, confirmed, unconfirmed);
         }
     }
 

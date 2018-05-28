@@ -910,6 +910,84 @@ final class TransactionImpl implements Transaction {
         }
     }
 
+    static BuilderImpl newTransactionBuilderComputational(byte[] bytes) throws NxtException.NotValidException {
+        try {
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            byte type = buffer.get();
+            byte subtype = buffer.get();
+            byte version = (byte) ((subtype & 0xF0) >> 4);
+            subtype = (byte) (subtype & 0x0F);
+            int timestamp = buffer.getInt();
+            short deadline = buffer.getShort();
+            byte[] senderPublicKey = new byte[32];
+            buffer.get(senderPublicKey);
+            long recipientId = buffer.getLong();
+            long amountNQT = buffer.getLong();
+            long feeNQT = buffer.getLong();
+            byte[] referencedTransactionFullHash = new byte[32];
+            buffer.get(referencedTransactionFullHash);
+            referencedTransactionFullHash = Convert.emptyToNull(referencedTransactionFullHash);
+            byte[] signature = new byte[64];
+            buffer.get(signature);
+            signature = Convert.emptyToNull(signature);
+            int flags = 0;
+            int ecBlockHeight = 0;
+            long ecBlockId = 0;
+            if (version > 0) {
+                flags = buffer.getInt();
+                ecBlockHeight = buffer.getInt();
+                ecBlockId = buffer.getLong();
+            }
+            TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
+            BuilderImpl builder = new BuilderImpl(version, senderPublicKey, amountNQT, feeNQT,
+                    deadline, transactionType.parseAttachment(buffer, version))
+                    .timestamp(timestamp)
+                    .referencedTransactionFullHash(referencedTransactionFullHash)
+                    .signature(signature)
+                    .ecBlockHeight(ecBlockHeight)
+                    .ecBlockId(ecBlockId);
+            if (transactionType.canHaveRecipient()) {
+                builder.recipientId(recipientId);
+            }
+            int position = 1;
+            if ((flags & position) != 0 || (version == 0 && transactionType == TransactionType.Messaging.ARBITRARY_MESSAGE)) {
+                builder.appendix(new Appendix.Message(buffer, version, true));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.EncryptedMessage(buffer, version));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.PublicKeyAnnouncement(buffer, version));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.EncryptToSelfMessage(buffer, version));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.Phasing(buffer, version));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.PrunablePlainMessage(buffer, version));
+            }
+            position <<= 1;
+            if ((flags & position) != 0) {
+                builder.appendix(new Appendix.PrunableEncryptedMessage(buffer, version));
+            }
+            if (buffer.hasRemaining()) {
+                throw new NxtException.NotValidException("Transaction bytes too long, " + buffer.remaining() + " extra bytes");
+            }
+            return builder;
+        } catch (NxtException.NotValidException|RuntimeException e) {
+            Logger.logDebugMessage("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
+            throw e;
+        }
+    }
+
     static BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws NxtException.NotValidException {
         BuilderImpl builder = newTransactionBuilder(bytes);
         if (prunableAttachments != null) {
@@ -1063,6 +1141,59 @@ final class TransactionImpl implements Transaction {
             }
             if (attachmentData != null) {
                 builder.appendix(Appendix.Message.parse(attachmentData));
+                builder.appendix(Appendix.EncryptedMessage.parse(attachmentData));
+                builder.appendix((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
+                builder.appendix(Appendix.EncryptToSelfMessage.parse(attachmentData));
+                builder.appendix(Appendix.Phasing.parse(attachmentData));
+                builder.appendix(Appendix.PrunablePlainMessage.parse(attachmentData));
+                builder.appendix(Appendix.PrunableEncryptedMessage.parse(attachmentData));
+            }
+            return builder;
+        } catch (NxtException.NotValidException|RuntimeException e) {
+            Logger.logDebugMessage("Failed to parse transaction: " + transactionData.toJSONString());
+            throw e;
+        }
+    }
+
+    static BuilderImpl newTransactionBuilderComputational(JSONObject transactionData) throws NxtException.NotValidException {
+        try {
+            byte type = ((Long) transactionData.get("type")).byteValue();
+            byte subtype = ((Long) transactionData.get("subtype")).byteValue();
+            int timestamp = ((Long) transactionData.get("timestamp")).intValue();
+            short deadline = ((Long) transactionData.get("deadline")).shortValue();
+            byte[] senderPublicKey = Convert.parseHexString((String) transactionData.get("senderPublicKey"));
+            long amountNQT = Convert.parseLong(transactionData.get("amountNQT"));
+            long feeNQT = Convert.parseLong(transactionData.get("feeNQT"));
+            String referencedTransactionFullHash = (String) transactionData.get("referencedTransactionFullHash");
+            byte[] signature = Convert.parseHexString((String) transactionData.get("signature"));
+            Long versionValue = (Long) transactionData.get("version");
+            byte version = versionValue == null ? 0 : versionValue.byteValue();
+            JSONObject attachmentData = (JSONObject) transactionData.get("attachment");
+            int ecBlockHeight = 0;
+            long ecBlockId = 0;
+            if (version > 0) {
+                ecBlockHeight = ((Long) transactionData.get("ecBlockHeight")).intValue();
+                ecBlockId = Convert.parseUnsignedLong((String) transactionData.get("ecBlockId"));
+            }
+
+            TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
+            if (transactionType == null) {
+                throw new NxtException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
+            }
+            BuilderImpl builder = new BuilderImpl(version, senderPublicKey,
+                    amountNQT, feeNQT, deadline,
+                    transactionType.parseAttachment(attachmentData))
+                    .timestamp(timestamp)
+                    .referencedTransactionFullHash(referencedTransactionFullHash)
+                    .signature(signature)
+                    .ecBlockHeight(ecBlockHeight)
+                    .ecBlockId(ecBlockId);
+            if (transactionType.canHaveRecipient()) {
+                long recipientId = Convert.parseUnsignedLong((String) transactionData.get("recipient"));
+                builder.recipientId(recipientId);
+            }
+            if (attachmentData != null) {
+                builder.appendix(Appendix.Message.parse(attachmentData, true));
                 builder.appendix(Appendix.EncryptedMessage.parse(attachmentData));
                 builder.appendix((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
                 builder.appendix(Appendix.EncryptToSelfMessage.parse(attachmentData));
