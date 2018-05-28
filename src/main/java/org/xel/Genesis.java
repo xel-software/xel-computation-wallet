@@ -40,7 +40,7 @@ public final class Genesis {
     public static final int[] GENESIS_AMOUNTS = new int[]{100000000};
     /* VOLATILE PART END */
 
-    public static final long GENESIS_BLOCK_ID_COMPUTATIONCHAIN = Long.parseUnsignedLong("14584749995316663220");
+    public static final long GENESIS_BLOCK_ID_COMPUTATIONCHAIN = Long.parseUnsignedLong("2351751608427356534");
 
     private Genesis() {} // never
 

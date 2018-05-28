@@ -474,7 +474,7 @@ public final class Work {
         long currentBalance = acc.getBalanceNQT();
         long totalBalanceRequired = currentGrabsOpen;
 
-        if(totalBalanceRequired<currentBalance){
+        if(totalBalanceRequired>currentBalance){
             throw new NxtException.NotValidException("You should top up your XEL balance, there is no way you could pay for this (and other jobs) at the moment.");
         }
 

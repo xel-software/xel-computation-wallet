@@ -524,6 +524,40 @@ public final class ParameterParser {
         }
     }
 
+    public static Transaction.Builder parseTransaction(String transactionJSON, String transactionBytes, String prunableAttachmentJSON, boolean computational) throws ParameterException {
+        if (transactionBytes == null && transactionJSON == null) {
+            throw new ParameterException(MISSING_TRANSACTION_BYTES_OR_JSON);
+        }
+        if (transactionBytes != null && transactionJSON != null) {
+            throw new ParameterException(either("transactionBytes", "transactionJSON"));
+        }
+        if (prunableAttachmentJSON != null && transactionBytes == null) {
+            throw new ParameterException(JSONResponses.missing("transactionBytes"));
+        }
+        if (transactionJSON != null) {
+            try {
+                JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
+                return Nxt.newTransactionBuilder(json, 1);
+            } catch (NxtException.ValidationException | RuntimeException | ParseException e) {
+                Logger.logDebugMessage(e.getMessage(), e);
+                JSONObject response = new JSONObject();
+                JSONData.putException(response, e, "Incorrect transactionJSON");
+                throw new ParameterException(response);
+            }
+        } else {
+            try {
+                byte[] bytes = Convert.parseHexString(transactionBytes);
+                JSONObject prunableAttachments = prunableAttachmentJSON == null ? null : (JSONObject)JSONValue.parseWithException(prunableAttachmentJSON);
+                return Nxt.newTransactionBuilder(bytes, prunableAttachments, 1);
+            } catch (NxtException.ValidationException|RuntimeException | ParseException e) {
+                Logger.logDebugMessage(e.getMessage(), e);
+                JSONObject response = new JSONObject();
+                JSONData.putException(response, e, "Incorrect transactionBytes");
+                throw new ParameterException(response);
+            }
+        }
+    }
+
     public static Appendix getPlainMessage(HttpServletRequest req, boolean prunable) throws ParameterException {
         String messageValue = Convert.emptyToNull(req.getParameter("message"));
         boolean messageIsText = !"false".equalsIgnoreCase(req.getParameter("messageIsText"));

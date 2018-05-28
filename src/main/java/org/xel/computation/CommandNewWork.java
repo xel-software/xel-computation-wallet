@@ -245,7 +245,7 @@ public class CommandNewWork extends IComputationAttachment {
         if(totalBalanceRequired<currentGrabsOpen || totalBalanceRequired<thisJobWillCost){
             throw new NxtException.NotValidException("No integer overflow attacks please, kiddo!");
         }
-        if(totalBalanceRequired<currentBalance){
+        if(totalBalanceRequired>currentBalance){
             throw new NxtException.NotValidException("You should top up your XEL balance, there is no way you could pay for this (and other jobs) at the moment.");
         }
 
@@ -254,8 +254,6 @@ public class CommandNewWork extends IComputationAttachment {
 
     @Override
     boolean validate(Transaction transaction) {
-
-
         if (transaction != null && transaction.getDeadline() > ComputationConstants.WORK_TRANSACTION_DEADLINE_VALUE)
             return false;
         if (((this.sourceCode == null) || (this.sourceCode.length == 0)) && (this.sourceCodeCompressed == null) || (this.sourceCodeCompressed.length == 0))
@@ -283,7 +281,8 @@ public class CommandNewWork extends IComputationAttachment {
 
         // Check if account restrictions kick in
         try{
-            this.checkAccountRestrictions(transaction.getSenderId());
+            if (transaction != null)
+                this.checkAccountRestrictions(transaction.getSenderId());
         }catch(NxtException.NotValidException e){
             Logger.logInfoMessage("work package dropped: (reason: did not meet account requirements)");
             return false;

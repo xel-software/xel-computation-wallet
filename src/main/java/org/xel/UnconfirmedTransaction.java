@@ -66,7 +66,7 @@ class UnconfirmedTransaction implements Transaction {
             if (prunableJSON != null) {
                 prunableAttachments = (JSONObject) JSONValue.parse(prunableJSON);
             }
-            TransactionImpl.BuilderImpl builder = TransactionImpl.newTransactionBuilder(transactionBytes, prunableAttachments);
+            TransactionImpl.BuilderImpl builder = TransactionImpl.newTransactionBuilderComputational(transactionBytes, prunableAttachments);
             this.transaction = builder.buildComputation(0);
             this.transaction.setHeight(rs.getInt("transaction_height"));
             this.arrivalTimestamp = rs.getLong("arrival_timestamp");

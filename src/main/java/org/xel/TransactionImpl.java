@@ -1003,6 +1003,21 @@ final class TransactionImpl implements Transaction {
         return builder;
     }
 
+    static BuilderImpl newTransactionBuilderComputational(byte[] bytes, JSONObject prunableAttachments) throws NxtException.NotValidException {
+        BuilderImpl builder = newTransactionBuilderComputational(bytes);
+        if (prunableAttachments != null) {
+            Appendix.PrunablePlainMessage prunablePlainMessage = Appendix.PrunablePlainMessage.parse(prunableAttachments);
+            if (prunablePlainMessage != null) {
+                builder.appendix(prunablePlainMessage);
+            }
+            Appendix.PrunableEncryptedMessage prunableEncryptedMessage = Appendix.PrunableEncryptedMessage.parse(prunableAttachments);
+            if (prunableEncryptedMessage != null) {
+                builder.appendix(prunableEncryptedMessage);
+            }
+        }
+        return builder;
+    }
+
     public byte[] getUnsignedBytes() {
         return zeroSignature(getBytes());
     }
