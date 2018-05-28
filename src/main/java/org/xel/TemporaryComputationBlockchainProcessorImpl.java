@@ -1531,12 +1531,12 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
                                     for (TransactionImpl transaction : currentBlock.getTransactions()) {
                                         byte[] transactionBytes = transaction.bytes();
                                         if (currentBlock.getHeight() > Constants.NQT_BLOCK
-                                                && !Arrays.equals(transactionBytes, TransactionImpl.newTransactionBuilder(transactionBytes).buildComputation(0).bytes())) {
+                                                && !Arrays.equals(transactionBytes, TransactionImpl.newTransactionBuilderComputational(transactionBytes).buildComputation(0).bytes())) {
                                             throw new NxtException.NotValidException("Transaction bytes cannot be parsed back to the same transaction: "
                                                     + transaction.getJSONObject().toJSONString());
                                         }
                                         JSONObject transactionJSON = (JSONObject) JSONValue.parse(transaction.getJSONObject().toJSONString());
-                                        if (!Arrays.equals(transactionBytes, TransactionImpl.newTransactionBuilder(transactionJSON).buildComputation(0).bytes())) {
+                                        if (!Arrays.equals(transactionBytes, TransactionImpl.newTransactionBuilderComputational(transactionJSON).buildComputation(0).bytes())) {
                                             throw new NxtException.NotValidException("Transaction JSON cannot be parsed back to the same transaction: "
                                                     + transaction.getJSONObject().toJSONString());
                                         }

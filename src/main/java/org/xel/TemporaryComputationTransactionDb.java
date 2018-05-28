@@ -210,7 +210,7 @@ final class TemporaryComputationTransactionDb {
                 }
             }
             if (rs.getBoolean("has_message")) {
-                builder.appendix(new Appendix.Message(buffer, version));
+                builder.appendix(new Appendix.Message(buffer, version, true));
             }
             if (rs.getBoolean("has_encrypted_message")) {
                 builder.appendix(new Appendix.EncryptedMessage(buffer, version));

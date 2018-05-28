@@ -21,9 +21,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.xel.Account;
 import org.xel.computation.*;
 import org.json.simple.JSONStreamAware;
 import org.xel.NxtException;
+import org.xel.crypto.Crypto;
 import org.xel.util.Convert;
 
 import java.io.IOException;
@@ -89,6 +91,16 @@ public final class CreateWork extends CreateTransaction {
 
         CommandNewWork work = new CommandNewWork(numeric_cap_number_pow, (short)numeric_deadline,numeric_xelPerPow,numeric_xelPerBounty,numeric_bountiesPerIteration,numeric_numberOfIterations, programCode.getBytes());
 
+
+        try{
+            if(secret!=null && secret.length()>0) {
+                work.checkAccountRestrictions(Account.getId(Crypto.getPublicKey(secret)));
+            }else{
+                work.checkAccountRestrictions(Account.getId(pubKey));
+            }
+        }catch(NxtException.NotValidException e){
+            return JSONResponses.WORK_SCREWED(e.getMessage());
+        }
         try{
             if(!work.validatePublic(null))
                 return JSONResponses.WORK_NOT_VALID;
