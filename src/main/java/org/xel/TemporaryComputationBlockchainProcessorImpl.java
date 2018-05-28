@@ -115,9 +115,11 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
         private void downloadPeer() throws InterruptedException {
             try {
                 long startTime = System.currentTimeMillis();
-                int numberOfForkConfirmations = blockchain.getHeight() > Constants.LAST_CHECKSUM_BLOCK - 720 ?
-                        defaultNumberOfForkConfirmations : Math.min(1, defaultNumberOfForkConfirmations);
+                int numberOfForkConfirmations = 0; // do not require this for now blockchain.getHeight() > Constants.LAST_CHECKSUM_BLOCK - 720 ? defaultNumberOfForkConfirmations : Math.min(1, defaultNumberOfForkConfirmations);
                 connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true, Peer.Service.COMPUTATION_REDIRECTOR);
+                // Logger.logInfoMessage("COMPUTATION FETCHER: Public peers with according service: " + connectedPublicPeers.size());
+
+
                 if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
                     return;
                 }
