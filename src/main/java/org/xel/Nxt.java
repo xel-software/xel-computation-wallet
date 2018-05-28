@@ -347,6 +347,8 @@ public final class Nxt {
 
     public static void main(String[] args) {
         try {
+            System.out.println("XEL CORE / XELINE IS OPEN-SOURCE SOFTWARE RUNNING ON THE MAIN-NET BUT IS STILL CONSIDERED \"BETA\" AND MAY CONTAIN BUGS, SOME OF WHICH MAY HAVE SERIOUS CONSEQUENCES. WE THEREFORE DISCLAIM ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING DIRECTLY OR INDIRECTLY FROM THE USE OF THIS SOFTWARE OR OF ANY DERIVATIVE WORK. USE THE SOFTWARE AND THE INFORMATION PRESENTED HERE AT OUR OWN RISK.");
+            Thread.sleep(2000);
             Runtime.getRuntime().addShutdownHook(new Thread(Nxt::shutdown));
             init();
         } catch (Throwable t) {
