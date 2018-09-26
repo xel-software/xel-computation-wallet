@@ -1102,9 +1102,10 @@ final class TransactionImpl implements Transaction {
 
     static TransactionImpl parseTransaction(JSONObject transactionData) throws NxtException.NotValidException {
         TransactionImpl transaction = newTransactionBuilder(transactionData).build();
-        if (transaction.getSignature() != null && !transaction.checkSignature()) {
+        // Removed: Transaction Signature Validation is performed upon unconfirmed TX receive and on block-accept. No need to have it inside "parseTransaction"
+        /*if (transaction.getSignature() != null && !transaction.checkSignature()) {
             throw new NxtException.NotValidException("Invalid transaction signature for transaction " + transaction.getJSONObject().toJSONString());
-        }
+        }*/
         return transaction;
     }
 
