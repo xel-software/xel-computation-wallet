@@ -2,8 +2,8 @@ package org.xel;
 
 import org.xel.crypto.Crypto;
 import org.xel.helpers.RedeemFunctions;
-import nxt.util.Convert;
-import nxt.util.JSON;
+import org.xel.util.Convert;
+import org.xel.util.JSON;
 import org.xel.util.Logger;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
