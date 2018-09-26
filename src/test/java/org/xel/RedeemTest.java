@@ -2,6 +2,8 @@ package org.xel;
 
 import org.xel.crypto.Crypto;
 import org.xel.helpers.RedeemFunctions;
+import org.xel.util.Convert;
+import org.xel.util.JSON;
 import org.xel.util.Logger;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
@@ -93,6 +95,11 @@ public class RedeemTest extends AbstractForgingTest {
         // Verify Balance, Guaranteed must be 0, Balance must be the redeemed
         Assert.assertEquals((long)AbstractBlockchainTest.getGuaranteedBalanceBySecretPhrase(AbstractForgingTest.testForgingSecretPhrase), (long)Redeem.getClaimableAmount(address));
         Assert.assertEquals((long)AbstractBlockchainTest.getBalanceBySecretPhrase(AbstractForgingTest.testForgingSecretPhrase), (long)Redeem.getClaimableAmount(address));
+
+        // Print transaction
+        Transaction t = Nxt.getBlockchain().getTransaction(Long.parseUnsignedLong("11991952007048292723"));
+        System.out.println(t.getJSONObject().toJSONString());
+        System.out.println(Convert.toHexString(t.getBytes()));
     }
 
     private static boolean redeem_different_sig_and_receipient(String address_entry, String secretPhrase, long accountId, String[] bitcoin_privkeys, boolean graceblock)
