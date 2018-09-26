@@ -56,6 +56,7 @@
         <directory>conf</directory>
         <includes>
             <include>logging-default.properties</include>
+            <include>nxt.properties</include>
             <include>nxt-default.properties</include>
             <include>nxt-junit-default.properties</include>
             <include>testvm.properties</include>
