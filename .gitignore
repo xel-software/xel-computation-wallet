@@ -1,1 +1,11 @@
-.idea*
+.idea/*
+nxt_db/*
+target/*
+logs/nxt*
+logs/xel*
+src/*/*.iml
+work/code.epl
+install/bundles/output.txt
+install/bundles/*.dmg
+install/bundles/*.sh
+install/bundles/*.exe
