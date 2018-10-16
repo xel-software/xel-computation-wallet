@@ -37,6 +37,11 @@ XEL CORE / XELINE IS OPEN-SOURCE SOFTWARE RUNNING ON THE MAIN-NET BUT IS STILL C
 *wait for the JavaFX wallet window to open*
 *on platforms without JavaFX, open http://localhost:17876/ in a browser*
 
+----
+## Run XEL Computation Wallet from docker installer
+
+check the dedicated git project : https://github.com/xel-software/xel-installer-docker
+
 
 ----
 ## Improve it
