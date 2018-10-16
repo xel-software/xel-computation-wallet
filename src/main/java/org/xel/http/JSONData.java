@@ -387,6 +387,7 @@ public final class JSONData {
         byte[] signature = Convert.emptyToNull(transaction.getSignature());
         if (signature != null) {
             json.put("signature", Convert.toHexString(signature));
+            json.put("signatureValid", transaction.verifySignature());
             json.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(signature)));
             json.put("fullHash", transaction.getFullHash());
             json.put("transaction", transaction.getStringId());
