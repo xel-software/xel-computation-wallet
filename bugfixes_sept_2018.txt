@@ -1,0 +1,38 @@
+The following bugfixes have been applied between 16. and 18. September 2018:
+
+BUG1:
+
+Severity: LOW
+Affects Consensus / Requires Fork: NO
+Description:
+
+When nodes sync many blocks because they have been offline for a while, they typically receive blocks (and their transactions) in blobs, i.e., multiple blocks and transactions at one.
+The transaction signatures have been checked multiple times, once when receiving the blocks, and again when the blocks are actually applied to the blockchain (in order).
+
+Now, redeem transactions require adding a public key announcement if the address has not been seen on the blockchain to correctly verify the redeem signature - otherwise not. However, when signatures were checked for transactions in a blob of blocks during initial sync, it was possible that there were both, first a (different) public key announcement and then a redeem transaction without (a redundant) publickey announcement. However, since none of the transaction were applied yet, the second "redeem" transaction check failed and caused honest nodes to be disconnected.
+
+The fix was to remove the signature checks during parseTransaction():
+
+https://github.com/xel-software/Litewallet-Mainnet/commit/779615aaad4a763ed76bbdbae1835bcbc5eb86ac
+
+This is safe to do, because transaction signature are still checked:
+a) when including a block in the blockchain: BlockchainProcessorImpl.java Line 1555 (validateTransactions())
+b) when receiving an unconfirmed transaction: TransactionProcessorImpl.java Line Line 686 (processTransaction())
+
+
+BUG2:
+
+Severity: LOW
+Affects Consensus / Requires Fork: NO
+
+The warning, that you are on a fork relied simply on checking how much "staking power" miners are having. However, when only very few people are staking, the staking power is fairly low which caused the warning "You are on a fork" to appear and giving false alarms.
+
+It is false to rely on the staking power to guess whether you are on a fork or not. For now, we have applied a little fix:
+
+https://github.com/xel-software/Litewallet-Mainnet/commit/f9d866bc85c2122ba54ae9a5d6a16e20244acdab
+
+Which simply assume now, that when no block was found for more than an hour, a fork must have occured, splitting you off the network while the rest proceeds. Better metrics are appreciated. Everyone is encouraged to submit a suggestion or a pull request. For high security application, it may be advised to cross check the latest blocks with other sources that you trust (other nodes of you or the block explorer)!
+Furthermore, in this commit:
+https://github.com/xel-software/Litewallet-Mainnet/commit/17baa92bdf1b45065311846e3f26373acfe54bef
+
+We require 3 fork confirmations instead of only 2, which only switches to a different fork (from active to orphan block) when at least 3 other nodes that you are connected to confirm to be on the same fork.

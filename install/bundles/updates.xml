@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updateDescriptor baseUrl="">
+  <entry targetMediaFileId="67" updatableVersionMin="" updatableVersionMax="" fileName="xel-compute-wallet_macos_3_2_1-r1.dmg" newVersion="3.2.1-r1" newMediaFileId="67" fileSize="144806023" md5Sum="a156eee3cac7193e8a9f94f462529276" bundledJre="macosx-amd64-1.8.0_181_unpacked" archive="false" singleBundle="true">
+    <comment language="en" />
+  </entry>
+</updateDescriptor>

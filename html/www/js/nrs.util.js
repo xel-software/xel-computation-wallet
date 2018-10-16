@@ -586,6 +586,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.baseTargetPercent = function(block) {
         if (block) {
+            //INITIAL_BASE_TARGET = 153722867
             return Math.round(block.baseTarget / 153722867 * 100)
         } else {
             return 0;
