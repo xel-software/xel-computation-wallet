@@ -123,7 +123,7 @@ var NRS = (function(NRS, $) {
     NRS.updateForgingStatus = function(secretPhrase) {
         var forgingIndicator = $("#forging_indicator");
         if (!NRS.isForgingSupported()) {
-            forgingIndicator.hide();
+            //forgingIndicator.hide();
             return;
         }
         var status = NRS.forgingStatus;
