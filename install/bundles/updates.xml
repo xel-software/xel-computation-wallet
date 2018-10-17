@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <updateDescriptor baseUrl="">
-  <entry targetMediaFileId="67" updatableVersionMin="" updatableVersionMax="" fileName="xel-compute-wallet_macos_3_2_1-r1.dmg" newVersion="3.2.1-r1" newMediaFileId="67" fileSize="144806023" md5Sum="a156eee3cac7193e8a9f94f462529276" bundledJre="macosx-amd64-1.8.0_181_unpacked" archive="false" singleBundle="true">
+  <entry targetMediaFileId="67" updatableVersionMin="" updatableVersionMax="" fileName="xel-computation-wallet_macos_3_2_1-r1.dmg" newVersion="3.2.1-r1" newMediaFileId="67" fileSize="144806023" md5Sum="6c99ec5407f3f4624f7170a92d3235a8" bundledJre="macosx-amd64-1.8.0_181_unpacked" archive="false" singleBundle="true">
+    <comment language="en" />
+  </entry>
+  <entry targetMediaFileId="70" updatableVersionMin="" updatableVersionMax="" fileName="xel-computation-wallet_windows-x64_3_2_1-r1.exe" newVersion="3.2.1-r1" newMediaFileId="70" fileSize="118504448" md5Sum="46bdb8259ef75bba659735a1fa084400" bundledJre="windows-amd64-1.8.0_181" archive="false" singleBundle="false">
+    <comment language="en" />
+  </entry>
+  <entry targetMediaFileId="71" updatableVersionMin="" updatableVersionMax="" fileName="xel-computation-wallet_unix_3_2_1-r1.sh" newVersion="3.2.1-r1" newMediaFileId="71" fileSize="71375665" md5Sum="1f8f739875a62db99201bd53fd784291" bundledJre="" archive="false" singleBundle="false">
     <comment language="en" />
   </entry>
 </updateDescriptor>
