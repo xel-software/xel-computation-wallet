@@ -9,3 +9,5 @@ install/bundles/output.txt
 install/bundles/*.dmg
 install/bundles/*.sh
 install/bundles/*.exe
+
+xel-computation-wallet\.jar
