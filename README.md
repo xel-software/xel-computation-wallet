@@ -1,6 +1,8 @@
 ----
 # Welcome to XEL!
 
+[![GitHub version](https://badge.fury.io/gh/xel-software%2Fxel-lite-wallet.svg)](https://badge.fury.io/gh/xel-software%2Fxel-lite-wallet)
+
 XEL is a decentralized supercomputer based on cryptography and blockchain technology.
 
 ----
