@@ -29,8 +29,10 @@ https://github.com/xel-software/xel-installer-docker
 
 ### clone the repository
 
-`git clone https://github.com/xel-software/xel-computation-wallet`
-`cd xel-computation-wallet`
+```
+git clone https://github.com/xel-software/xel-computation-wallet
+cd xel-computation-wallet
+```
 
 ### compile it
 
