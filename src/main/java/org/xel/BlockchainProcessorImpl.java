@@ -100,10 +100,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final ExecutorService networkService = Executors.newCachedThreadPool();
     private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
-    private final boolean trimDerivedTables = Nxt.getBooleanProperty("org.xel.trimDerivedTables");
+    private final boolean trimDerivedTables = Nxt.getBooleanProperty("nxt.trimDerivedTables");
     private final int defaultNumberOfForkConfirmations = Nxt.getIntProperty(Constants.isTestnet
-            ? "org.xel.testnetNumberOfForkConfirmations" : "org.xel.numberOfForkConfirmations");
-    private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("org.xel.simulateEndlessDownload");
+            ? "nxt.testnetNumberOfForkConfirmations" : "nxt.numberOfForkConfirmations");
+    private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("nxt.simulateEndlessDownload");
 
     private int initialScanHeight;
     private volatile int lastTrimHeight;
@@ -932,7 +932,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     };
 
     private BlockchainProcessorImpl() {
-        final int trimFrequency = Nxt.getIntProperty("org.xel.trimFrequency");
+        final int trimFrequency = Nxt.getIntProperty("nxt.trimFrequency");
         blockListeners.addListener(block -> {
             if (block.getHeight() % 5000 == 0) {
                 Logger.logMessage("processed block " + block.getHeight());
@@ -966,8 +966,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             alreadyInitialized = true;
             if (addGenesisBlock()) {
                 scan(0, false);
-            } else if (Nxt.getBooleanProperty("org.xel.forceScan")) {
-                scan(0, Nxt.getBooleanProperty("org.xel.forceValidate"));
+            } else if (Nxt.getBooleanProperty("nxt.forceScan")) {
+                scan(0, Nxt.getBooleanProperty("nxt.forceValidate"));
             } else {
                 boolean rescan;
                 boolean validate;

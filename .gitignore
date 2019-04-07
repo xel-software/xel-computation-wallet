@@ -11,3 +11,10 @@ install/bundles/*.sh
 install/bundles/*.exe
 
 xel-computation-wallet\.jar
+/target/
+
+\.settings/
+
+\.classpath
+
+\.project
