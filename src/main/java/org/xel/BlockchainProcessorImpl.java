@@ -17,6 +17,7 @@
 
 package org.xel;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.xel.crypto.Crypto;
 import org.xel.db.DbIterator;
 import org.xel.db.DerivedDbTable;
@@ -35,7 +36,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

@@ -16,7 +16,8 @@
 
 package org.xeldesktop;
 
-import com.sun.javafx.scene.control.skin.ContextMenuContent;
+import com.sun.javafx.scene.control.ContextMenuContent;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -24,8 +25,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
-
-import java.util.Iterator;
 
 /**
  * Show only the standard cut/copy/paste context menu for edit fields and labels
@@ -38,11 +37,9 @@ class WalletContextMenu implements EventHandler<ContextMenuEvent> {
 
     @Override
     public void handle(ContextMenuEvent event) {
-        @SuppressWarnings("deprecation")
-        final Iterator<Window> windows = Window.impl_getWindows(); // May not work in Java 9
-        while (windows.hasNext()) {
+        final ObservableList<Window> windows = Window.getWindows(); // May not work in Java 9
+        for(Window window : windows) {
             // access the context menu window
-            final Window window = windows.next();
             if (window instanceof ContextMenu) {
                 if (window.getScene() != null && window.getScene().getRoot() != null) {
                     Parent root = window.getScene().getRoot();

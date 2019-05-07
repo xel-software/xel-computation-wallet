@@ -14,7 +14,6 @@ xel-computation-wallet\.jar
 /target/
 
 \.settings/
-
 \.classpath
-
 \.project
+\*.iml
