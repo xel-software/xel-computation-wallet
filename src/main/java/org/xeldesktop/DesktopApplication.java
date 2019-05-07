@@ -135,6 +135,7 @@ public class DesktopApplication extends Application {
                     Nxt.getTransactionProcessor().addListener((transaction) ->
                             updateClientState(TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS, transaction), TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS);
 
+                    /*
                     if (ENABLE_JAVASCRIPT_DEBUGGER) {
                         try {
                             // Add the javafx_webview_debugger lib to the classpath
@@ -147,6 +148,7 @@ public class DesktopApplication extends Application {
                             Logger.logInfoMessage("Cannot start JavaFx debugger", e);
                         }
                     }
+                    */
                });
 
         // Invoked by the webEngine popup handler
