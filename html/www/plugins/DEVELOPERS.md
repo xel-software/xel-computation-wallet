@@ -53,7 +53,7 @@ Meta information about the plugin is provided as a ``JSON`` dictionary in a
     "infoUrl": "http://infosaboutmyplugin.info",
     "startPage": "p_hello_world", //One of the pages used for NRS.pages.PAGENAME method(s)
 
-    "nrsVersion": "1.5.0", //ALWAYS provide three sequence numbers, no additions like "e"!
+    "nrsVersion": "3.1.3", //ALWAYS provide three sequence numbers, no additions like "e"!
 
     //optional
     "deactivated": true, //hard-set deactivation, default: false
@@ -84,9 +84,9 @@ The ``nrs_version`` attribute in the manifest file indicates the NRS version
 the plugin was written for. Due to possible changes in javascript API behaviour
 it is recommended to release a new plugin version for every new NRS release,
 though a plugin will still be running after minor release updates (e.g. a
-plugin written for "1.5.1" running under "1.5.5" client installation).
+plugin written for "3.1.2" running under "3.1.3" client installation).
 
-After a major NRS update (e.g. from "1.5.9" to "1.6.0"), the plugin will stop
+After a major NRS update (e.g. from "3.1.2" to "3.2.0"), the plugin will stop
 working and has to be updated.
 
 ## Best Practices for Development ##
