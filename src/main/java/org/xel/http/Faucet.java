@@ -70,7 +70,7 @@ public final class Faucet extends APIServlet.APIRequestHandler {
 
         long amount = Long.parseLong(Nxt.getStringProperty("nxt.faucetAmount"));
         long amountHave = 0;
-        Account acc = Account.getAccount(Crypto.getPublicKey(Nxt.getStringProperty("nxt.faucetPassphrase")));
+        Account acc = Account.getAccount(Crypto.getPublicKey(Nxt.getStringProperty("nxt.faucetPassphrase", null, true)));
         if(acc==null)
             amountHave=0;
         else
@@ -81,9 +81,9 @@ public final class Faucet extends APIServlet.APIRequestHandler {
 
         long recipient = ParameterParser.getAccountId(req, "account", true);
         long amountNQT = Long.parseLong(Nxt.getStringProperty("nxt.faucetAmount"));
-        Transaction.Builder builder = Nxt.newTransactionBuilder(Crypto.getPublicKey(Nxt.getStringProperty("nxt.faucetPassphrase")), amountNQT, Constants.TENTH_NXT,
+        Transaction.Builder builder = Nxt.newTransactionBuilder(Crypto.getPublicKey(Nxt.getStringProperty("nxt.faucetPassphrase", null, true)), amountNQT, Constants.TENTH_NXT,
                 (short) 64, Attachment.ORDINARY_PAYMENT).recipientId(recipient);
-        Transaction t1 = builder.build(Nxt.getStringProperty("nxt.faucetPassphrase"));
+        Transaction t1 = builder.build(Nxt.getStringProperty("nxt.faucetPassphrase", null, true));
         Nxt.getTransactionProcessor().broadcast(t1);
 
         DecimalFormat df2 = new DecimalFormat("#.######");
