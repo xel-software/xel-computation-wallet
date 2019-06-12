@@ -24,7 +24,7 @@ https://github.com/xel-software/xel-installer-docker
 ## Run XEL Computation Wallet from sources (***recommended for advanced users***)
 
 ### dependencies
-  - Oracle Java 8 : https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+  - Java 12 : [oracle jdk](https://www.oracle.com/technetwork/java/javase/downloads/jdk12-downloads-5295953.html) or [openjdk](https://jdk.java.net/12/)
   - Maven : https://maven.apache.org/install.html
 
 ### clone the repository
@@ -37,6 +37,29 @@ cd xel-computation-wallet
 ### compile it
 
 `mvn package`
+
+### clone the miner
+
+clone the miner next to your wallet folder like this :
+
+```
+my_main_folder/xel-computation-wallet
+my_main_folder/xel-miner
+```
+
+```
+git clone https://github.com/xel-software/xel-miner
+cd xel-miner
+cmake .
+make install
+```
+
+### integrate the miner into the computation wallet
+
+```
+cd xel-computation-wallet
+./pull_miner.sh
+```
 
 ### start from the command line:
 - Linux/macOS: `./start.sh`
@@ -67,4 +90,4 @@ cd xel-computation-wallet
 ----
 ## Further Reading
 
-  - on discord : https://discord.gg/5YhuSzd
+  - on discord : https://link.xel.org/discord
