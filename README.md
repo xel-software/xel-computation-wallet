@@ -11,16 +11,6 @@ XEL is a decentralized supercomputer based on cryptography and blockchain techno
 XEL CORE / XELINE IS OPEN-SOURCE SOFTWARE RUNNING ON THE MAIN-NET BUT IS STILL CONSIDERED "BETA" AND MAY CONTAIN BUGS, SOME OF WHICH MAY HAVE SERIOUS CONSEQUENCES. WE THEREFORE DISCLAIM ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING DIRECTLY OR INDIRECTLY FROM THE USE OF THIS SOFTWARE OR OF ANY DERIVATIVE WORK. USE THE SOFTWARE AND THE INFORMATION PRESENTED HERE AT OUR OWN RISK.
 
 ----
-## Run XEL Computation Wallet from binaries (***recommended for desktops***)
-
-https://github.com/xel-software/xel-computation-wallet/releases/tag/latest
-
-----
-## Run XEL Computation Wallet from docker installer (***recommended for servers***)
-
-https://github.com/xel-software/xel-installer-docker
-
-----
 ## Run XEL Computation Wallet from sources (***recommended for advanced users***)
 
 ### dependencies
@@ -70,7 +60,10 @@ cd xel-computation-wallet
 ***on platforms without JavaFX, open http://localhost:17876/ in a browser***
 
 
+----
+## Run XEL Computation Wallet from docker installer (***recommended for servers***)
 
+https://github.com/xel-software/xel-installer-docker
 
 ----
 ## Improve it
