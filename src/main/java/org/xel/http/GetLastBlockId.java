@@ -68,14 +68,12 @@ public final class GetLastBlockId extends APIServlet.APIRequestHandler {
     }
 
     public static long getLastBlock() {
-        if(lastBlockId==0){
-            lastBlockId = Nxt.getBlockchain().getLastBlock().getId();
-        }
+        lastBlockId = Nxt.getBlockchain().getLastBlock().getId();
         return lastBlockId;
     }
 
     public static long getLastBlockComputational() {
-        if(lastBlockIdComp==0){
+        if(Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)) {
             lastBlockIdComp = Nxt.getTemporaryComputationBlockchain().getLastBlock().getId();
         }
         return lastBlockIdComp;

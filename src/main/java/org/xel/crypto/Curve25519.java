@@ -9,6 +9,7 @@ package org.xel.crypto;
  *
  * Based on work by Daniel J Bernstein, http://cr.yp.to/ecdh.html
  */
+//FIXME should not be public
 public final class Curve25519 {
 
     /* key size */

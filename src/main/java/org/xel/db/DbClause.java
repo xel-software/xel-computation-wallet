@@ -68,7 +68,7 @@ public abstract class DbClause {
         }
 
         @Override
-        protected int set(PreparedStatement pstmt, int index) throws SQLException {
+        protected int set(PreparedStatement pstmt, int index) {
             return index;
         }
 
@@ -81,7 +81,7 @@ public abstract class DbClause {
         }
 
         @Override
-        protected int set(PreparedStatement pstmt, int index) throws SQLException {
+        protected int set(PreparedStatement pstmt, int index) {
             return index;
         }
 
@@ -94,7 +94,7 @@ public abstract class DbClause {
         }
 
         @Override
-        protected int set(PreparedStatement pstmt, int index) throws SQLException {
+        protected int set(PreparedStatement pstmt, int index) {
             return index;
         }
 
@@ -117,26 +117,26 @@ public abstract class DbClause {
 
     }
     public static final class BytesClause extends DbClause {
-
+		
         private final byte[] value;
-
+		
         public BytesClause(final String columnName, final byte[] value) {
             super(" " + columnName + " = ? ");
             this.value = value;
         }
-
+		
         public BytesClause(final String columnName, final Op operator, final byte[] value) {
             super(" " + columnName + operator.operator() + "? ");
             this.value = value;
         }
-
+        
         @Override
         protected int set(final PreparedStatement pstmt, final int index) throws SQLException {
             pstmt.setBytes(index, this.value);
             return index + 1;
         }
-
     }
+    
     public static final class LikeClause extends DbClause {
 
         private final String prefix;

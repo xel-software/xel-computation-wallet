@@ -135,12 +135,12 @@ public class FilteredPreparedStatement extends FilteredStatement implements Prep
     }
 
     @Override
-    public void setAsciiStream(int parameterIndex, InputStream x, int length) throws SQLException {
+    public void setAsciiStream(int parameterIndex, java.io.InputStream x, int length) throws SQLException {
         stmt.setAsciiStream(parameterIndex, x, length);
     }
 
     @Override
-    public void setBinaryStream(int parameterIndex, InputStream x, int length) throws SQLException {
+    public void setBinaryStream(int parameterIndex, java.io.InputStream x, int length) throws SQLException {
         stmt.setBinaryStream(parameterIndex, x, length);
     }
 
@@ -170,7 +170,7 @@ public class FilteredPreparedStatement extends FilteredStatement implements Prep
     }
 
     @Override
-    public void setCharacterStream(int parameterIndex, Reader reader, int length) throws SQLException {
+    public void setCharacterStream(int parameterIndex, java.io.Reader reader, int length) throws SQLException {
         stmt.setCharacterStream(parameterIndex, reader, length);
     }
 
@@ -275,32 +275,32 @@ public class FilteredPreparedStatement extends FilteredStatement implements Prep
     }
 
     @Override
-    public void setAsciiStream(int parameterIndex, InputStream x, long length) throws SQLException {
+    public void setAsciiStream(int parameterIndex, java.io.InputStream x, long length) throws SQLException {
         stmt.setAsciiStream(parameterIndex, x, length);
     }
 
     @Override
-    public void setBinaryStream(int parameterIndex, InputStream x, long length) throws SQLException {
+    public void setBinaryStream(int parameterIndex, java.io.InputStream x, long length) throws SQLException {
         stmt.setBinaryStream(parameterIndex, x, length);
     }
 
     @Override
-    public void setCharacterStream(int parameterIndex, Reader reader, long length) throws SQLException {
+    public void setCharacterStream(int parameterIndex, java.io.Reader reader, long length) throws SQLException {
         stmt.setCharacterStream(parameterIndex, reader, length);
     }
 
     @Override
-    public void setAsciiStream(int parameterIndex, InputStream x) throws SQLException {
+    public void setAsciiStream(int parameterIndex, java.io.InputStream x) throws SQLException {
         stmt.setAsciiStream(parameterIndex, x);
     }
 
     @Override
-    public void setBinaryStream(int parameterIndex, InputStream x) throws SQLException {
+    public void setBinaryStream(int parameterIndex, java.io.InputStream x) throws SQLException {
         stmt.setBinaryStream(parameterIndex, x);
     }
 
     @Override
-    public void setCharacterStream(int parameterIndex, Reader reader) throws SQLException {
+    public void setCharacterStream(int parameterIndex, java.io.Reader reader) throws SQLException {
         stmt.setCharacterStream(parameterIndex, reader);
     }
 

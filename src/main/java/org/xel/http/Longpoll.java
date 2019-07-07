@@ -97,27 +97,29 @@ public final class Longpoll extends APIServlet.APIRequestHandler {
 
 	private Longpoll() {
 		super(new APITag[] { APITag.AE }, "nil");
-		TemporaryComputationBlockchainProcessorImpl.getInstance().blockListeners.addListener(block -> {
-			final String event = "block " + block.getHeight();
-			final ArrayList<String> list = new ArrayList<>();
-			list.add(event);
-			Longpoll.instance.addEvents(list);
-		}, BlockchainProcessor.Event.BLOCK_SCANNED_COMPUTATION);
 
-		TemporaryComputationBlockchainProcessorImpl.getInstance().blockListeners.addListener(block -> {
-			final String event = "new block (" + block.getHeight() + ")";
-			final ArrayList<String> list = new ArrayList<>();
-			list.add(event);
-			Longpoll.instance.addEvents(list);
-		}, BlockchainProcessor.Event.BLOCK_PUSHED_COMPUTATION);
+		if(Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)) {
+			Nxt.getTemporaryComputationBlockchainProcessor().addListener(block -> {
+				final String event = "block " + block.getHeight();
+				final ArrayList<String> list = new ArrayList<>();
+				list.add(event);
+				Longpoll.instance.addEvents(list);
+			}, BlockchainProcessor.Event.BLOCK_SCANNED_COMPUTATION);
 
+			Nxt.getTemporaryComputationBlockchainProcessor().addListener(block -> {
+				final String event = "new block (" + block.getHeight() + ")";
+				final ArrayList<String> list = new ArrayList<>();
+				list.add(event);
+				Longpoll.instance.addEvents(list);
+			}, BlockchainProcessor.Event.BLOCK_PUSHED_COMPUTATION);
 
-		TransactionProcessorImpl.getInstance().addListener(t -> {
-			final String event = "broadcast transaction";
-			final ArrayList<String> list = new ArrayList<>();
-			list.add(event);
-			Longpoll.instance.addEvents(list);
-		}, TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS_COMPUTATION);
+			Nxt.getTransactionProcessor().addListener(t -> {
+				final String event = "broadcast transaction";
+				final ArrayList<String> list = new ArrayList<>();
+				list.add(event);
+				Longpoll.instance.addEvents(list);
+			}, TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS_COMPUTATION);
+		}
 	}
 
 	private synchronized void addEvents(final List<String> l) {

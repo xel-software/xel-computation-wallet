@@ -1,6 +1,6 @@
 /*
- * Copyright Â© 2013-2016 The Nxt Core Developers.
- * Copyright Â© 2016-2017 Jelurida IP B.V.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -102,7 +102,7 @@ public final class Token {
         System.arraycopy(messageBytes, 0, data, 0, messageBytes.length);
         System.arraycopy(tokenBytes, 0, data, messageBytes.length, 36);
         byte[] announcedPublicKey = Account.getPublicKey(Account.getId(publicKey));
-        boolean isValid = Crypto.verify(signature, data, publicKey, true)
+        boolean isValid = Crypto.verify(signature, data, publicKey)
                 && (announcedPublicKey == null || Arrays.equals(publicKey, announcedPublicKey));
 
         return new Token(publicKey, timestamp, isValid);

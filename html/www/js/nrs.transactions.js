@@ -65,7 +65,9 @@ var NRS = (function(NRS, $, undefined) {
 
 	NRS.getUnconfirmedTransactions = function(callback) {
 		NRS.sendRequest("getUnconfirmedTransactions", {
-			"account": NRS.account
+			"account": NRS.account,
+            "firstIndex": 0,
+            "lastIndex": NRS.itemsPerPage
 		}, function(response) {
 			if (response.unconfirmedTransactions && response.unconfirmedTransactions.length) {
 				var unconfirmedTransactions = [];
@@ -164,7 +166,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
         NRS.sendRequest("getBlockchainTransactions", {
 			"account": NRS.account,
-			"timestamp": NRS.blocks[0].timestamp + 1,
+			"timestamp": Math.max(NRS.blocks[0].timestamp + 1, 0),
 			"firstIndex": 0,
 			"lastIndex": 0
 		}, function(response) {
@@ -332,14 +334,14 @@ var NRS = (function(NRS, $, undefined) {
 						if (finished) {
 							if (responsePoll.approved) {
 								state = "success";
-								color = "#52bef4";
+								color = "#00a65a";
 							} else {
 								state = "danger";
-								color = "hsl(330, 65%, 55%) !important";
+								color = "#f56954";
 							}
 						} else {
 							state = "warning";
-							color = "hsl(330, 65%, 55%) !important";
+							color = "#f39c12";
 						}
 
 						var $popoverTable = $("<table class='table table-striped'></table>");
@@ -379,9 +381,15 @@ var NRS = (function(NRS, $, undefined) {
 							icon = '<i class="fa fa-money"></i>';
 						}
 						if (vm == 2) {
-							icon = '<i class="fa fa-thumbs-up"></i>';
+							icon = '<i class="fa fa-signal"></i>';
 						}
 						if (vm == 3) {
+							icon = '<i class="fa fa-bank"></i>';
+						}
+						if (vm == 4) {
+							icon = '<i class="fa fa-thumbs-up"></i>';
+						}
+						if (vm == 5) {
 							icon = '<i class="fa fa-question"></i>';
 						}
 						var phasingDiv = "";
@@ -416,12 +424,12 @@ var NRS = (function(NRS, $, undefined) {
 						if (vm == 1) {
 							$popoverTypeTR.find("td:first").html($.t('accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
-							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " XEL";
+							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " " + NRS.constants.COIN_SYMBOL;
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
 						if (mbModel == 1) {
 							if (minBalance > 0) {
-								minBalanceFormatted = NRS.convertToNXT(minBalance) + " XEL";
+								minBalanceFormatted = NRS.convertToNXT(minBalance) + " " + NRS.constants.COIN_SYMBOL;
 								$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
 							}
 						}
@@ -443,7 +451,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	};
 
-    NRS.getTransactionRowHTML = function(t, actions, decimals) {
+    NRS.getTransactionRowHTML = function(t, actions, decimals, isScheduled) {
 		var transactionType = $.t(NRS.transactionTypes[t.type]['subTypes'][t.subtype]['i18nKeyTitle']);
 
 		if (t.type == 1 && t.subtype == 6 && t.attachment.priceNQT == "0") {
@@ -464,7 +472,7 @@ var NRS = (function(NRS, $, undefined) {
 				amount = new BigInteger(t.amountNQT);
 				sign = 1;
 			}
-			feeColor = "color:white;";
+			feeColor = "color:black;";
 		} else {
 			if (t.sender != t.recipient) {
 				if (t.amountNQT != "0") {
@@ -477,14 +485,14 @@ var NRS = (function(NRS, $, undefined) {
 					amount = new BigInteger(t.amountNQT); // send to myself
 				}
 			}
-			feeColor = "color:hsl(330, 65%, 55%) !important;";
+			feeColor = "color:red;";
 		}
 		var formattedAmount = "";
 		if (amount != "") {
 			formattedAmount = NRS.formatAmount(amount, false, false, decimals.amount);
 		}
 		var formattedFee = NRS.formatAmount(fee, false, false, decimals.fee);
-		var amountColor = (sign == 1 ? "color:#cbffb7;" : (sign == -1 ? "color:hsl(330, 65%, 55%) !important;" : "color:ffffff;"));
+		var amountColor = (sign == 1 ? "color:green;" : (sign == -1 ? "color:red;" : "color:black;"));
 		var hasMessage = false;
 
 		if (t.attachment) {
@@ -497,9 +505,13 @@ var NRS = (function(NRS, $, undefined) {
 		var html = "";
 		html += "<tr class='tr_transaction_" + t.transaction + "'>";
 		html += "<td style='vertical-align:middle;'>";
-  		html += "<a class='show_transaction_modal_action' href='#' data-timestamp='" + NRS.escapeRespStr(t.timestamp) + "' ";
-  		html += "data-transaction='" + NRS.escapeRespStr(t.transaction) + "'>";
-  		html += NRS.formatTimestamp(t.timestamp) + "</a>";
+		if (isScheduled) {
+            html += "<a href='#' onclick='NRS.showTransactionModal(" + JSON.stringify(t) + ");'>" + NRS.formatTimestamp(t.timestamp) + "</a>";
+		}  else {
+            html += "<a class='show_transaction_modal_action' href='#' data-timestamp='" + NRS.escapeRespStr(t.timestamp) + "' ";
+            html += "data-transaction='" + NRS.escapeRespStr(t.transaction) + "'>";
+            html += NRS.formatTimestamp(t.timestamp) + "</a>";
+		}
   		html += "</td>";
   		html += "<td style='vertical-align:middle;text-align:center;'>" + (hasMessage ? "&nbsp; <i class='fa fa-envelope-o'></i>&nbsp;" : "&nbsp;") + "</td>";
 		html += '<td style="vertical-align:middle;">';
@@ -509,13 +521,15 @@ var NRS = (function(NRS, $, undefined) {
         html += "<td style='vertical-align:middle;text-align:right;" + amountColor + "'>" + formattedAmount + "</td>";
         html += "<td style='vertical-align:middle;text-align:right;" + feeColor + "'>" + formattedFee + "</td>";
 		html += "<td style='vertical-align:middle;'>" + ((NRS.getAccountLink(t, "sender") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "sender")) + " ";
-		html += "<i class='fa fa-arrow-circle-right' style='color:#fff;'></i> " + ((NRS.getAccountLink(t, "recipient") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "recipient")) + "</td>";
-		html += "<td class='td_transaction_phasing' style='min-width:100px;vertical-align:middle;text-align:center;'></td>";
-		html += "<td style='vertical-align:middle;text-align:center;'>" + (t.confirmed ? NRS.getBlockLink(t.height, null, true) : "-") + "</td>";
-		html += "<td class='confirmations' style='vertical-align:middle;text-align:center;font-size:12px;'>";
-		html += "<span class='show_popover' data-content='" + (t.confirmed ? NRS.formatAmount(t.confirmations) + " " + $.t("confirmations") : $.t("unconfirmed_transaction")) + "' ";
-		html += "data-container='body' data-placement='left'>";
-		html += (!t.confirmed ? "-" : (t.confirmations > 1440 ? (NRS.formatAmount('144000000000') + "+") : NRS.formatAmount(t.confirmations))) + "</span></td>";
+		html += "<i class='fa fa-arrow-circle-right' style='color:#777;'></i> " + ((NRS.getAccountLink(t, "recipient") == "/" && t.type == 2) ? "Asset Exchange" : NRS.getAccountLink(t, "recipient")) + "</td>";
+		if (!isScheduled) {
+            html += "<td class='td_transaction_phasing' style='min-width:100px;vertical-align:middle;text-align:center;'></td>";
+            html += "<td style='vertical-align:middle;text-align:center;'>" + (t.confirmed ? NRS.getBlockLink(t.height, null, true) : "-") + "</td>";
+            html += "<td class='confirmations' style='vertical-align:middle;text-align:center;font-size:12px;'>";
+            html += "<span class='show_popover' data-content='" + (t.confirmed ? NRS.formatAmount(t.confirmations) + " " + $.t("confirmations") : $.t("unconfirmed_transaction")) + "' ";
+            html += "data-container='body' data-placement='left'>";
+            html += (!t.confirmed ? "-" : (t.confirmations > 1440 ? (NRS.formatAmount('144000000000') + "+") : NRS.formatAmount(t.confirmations))) + "</span></td>";
+        }
 		if (actions && actions.length != undefined) {
 			html += '<td class="td_transaction_actions" style="vertical-align:middle;text-align:right;">';
 			if (actions.indexOf('approve') > -1) {
@@ -523,6 +537,10 @@ var NRS = (function(NRS, $, undefined) {
 				html += "data-transaction='" + NRS.escapeRespStr(t.transaction) + "' data-fullhash='" + NRS.escapeRespStr(t.fullHash) + "' ";
 				html += "data-timestamp='" + t.timestamp + "' " + "data-votingmodel='" + t.attachment.phasingVotingModel + "' ";
 				html += "data-fee='1' data-min-balance-formatted=''>" + $.t('approve') + "</a>";
+			}
+			if (actions.indexOf('delete') > -1) {
+                html += "<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#delete_scheduled_transaction_modal' ";
+				html += "data-transaction='" + NRS.escapeRespStr(t.transaction) + "'>" + $.t("delete") + "</a>";
 			}
 			html += "</td>";
 		}
@@ -935,7 +953,52 @@ var NRS = (function(NRS, $, undefined) {
 		});
 	};
 
-	NRS.incoming.transactions = function() {
+    NRS.pages.scheduled_transactions = function(callback, subpage) {
+        NRS.sendRequest("getScheduledTransactions+", {
+        	account: NRS.accountRS,
+			adminPassword: NRS.getAdminPassword()
+		}, function(response) {
+            var errorMessage = $("#scheduled_transactions_error_message");
+            if (response.errorCode) {
+        		errorMessage.text(NRS.unescapeRespStr(response.errorDescription));
+        		errorMessage.show();
+			} else {
+                errorMessage.hide();
+                errorMessage.text("");
+			}
+			var rows = "";
+            if (response.scheduledTransactions && response.scheduledTransactions.length) {
+                if (response.scheduledTransactions.length > NRS.itemsPerPage) {
+                    NRS.hasMorePages = true;
+                    response.scheduledTransactions.pop();
+                }
+                var decimals = NRS.getTransactionsAmountDecimals(response.scheduledTransactions);
+                for (var i = 0; i < response.scheduledTransactions.length; i++) {
+                    var transaction = response.scheduledTransactions[i];
+					rows += NRS.getTransactionRowHTML(transaction, ["delete"], decimals, true);
+                }
+            }
+            NRS.dataLoaded(rows);
+        });
+    };
+
+    $("#delete_scheduled_transaction_modal").on("show.bs.modal", function(e) {
+        var $invoker = $(e.relatedTarget);
+        var transaction = $invoker.data("transaction");
+		$("#delete_scheduled_transaction_id").val(transaction);
+    });
+
+    NRS.forms.deleteScheduledTransaction = function($modal) {
+    	var data = NRS.getFormData($modal.find("form:first"));
+    	data.adminPassword = NRS.getAdminPassword();
+		return { data: data };
+    };
+
+    NRS.forms.deleteScheduledTransactionComplete = function() {
+    	NRS.goToPage("scheduled_transactions");
+	};
+
+    NRS.incoming.transactions = function() {
 		NRS.loadPage("transactions");
 	};
 

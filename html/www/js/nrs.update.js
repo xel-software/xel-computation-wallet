@@ -18,6 +18,7 @@
  * @depends {nrs.js}
  */
 var NRS = (function(NRS, $) {
+	var DOWNLOAD_REPOSITORY_URL = "https://bitbucket.org/Jelurida/nxt/downloads/";
 	var index = 0;
 	var bundles = [
 		{alias: "nrsVersion", status: "release", prefix: "nxt-client-", ext: "zip"},
@@ -59,13 +60,13 @@ var NRS = (function(NRS, $) {
 	function checkForNewVersion() {
         var installVersusNormal, installVersusBeta;
         if (NRS.nrsVersion && NRS.nrsVersion.versionNr) {
-            installVersusNormal = NRS.versionCompare(NRS.state.version, NRS.nrsVersion.versionNr);
+			installVersusNormal = NRS.versionCompare(NRS.state.version, NRS.nrsVersion.versionNr);
             $(".nrs_new_version_nr").html(NRS.nrsVersion.versionNr).show();
-        }
-        if (NRS.nrsBetaVersion && NRS.nrsBetaVersion.versionNr) {
-            installVersusBeta = NRS.versionCompare(NRS.state.version, NRS.nrsBetaVersion.versionNr);
+		}
+		if (NRS.nrsBetaVersion && NRS.nrsBetaVersion.versionNr) {
+			installVersusBeta = NRS.versionCompare(NRS.state.version, NRS.nrsBetaVersion.versionNr);
             $(".nrs_beta_version_nr").html(NRS.nrsBetaVersion.versionNr).show();
-        }
+		}
 
 		$("#nrs_update_explanation").find("> span").hide();
 		$("#nrs_update_explanation_wait").attr("style", "display: none !important");
@@ -146,7 +147,7 @@ var NRS = (function(NRS, $) {
             return;
         }
         var filename = bundle.prefix + NRS.downloadedVersion.versionNr + "." + bundle.ext;
-        var fileurl = "https://bitbucket.org/JeanLucPicard/nxt/downloads/" + filename;
+        var fileurl = DOWNLOAD_REPOSITORY_URL + filename;
         var nrsUpdateExplanation = $("#nrs_update_explanation");
         if (window.java !== undefined) {
             window.java.popupHandlerURLChange(fileurl);

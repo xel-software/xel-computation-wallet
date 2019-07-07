@@ -63,7 +63,7 @@ var NRS = (function(NRS, $) {
 						"<td>" + (contact.email ? contact.email.escapeHTML() : "-") + "</td>" +
 						"<td>" + contactDescription.escapeHTML() + "</td>" +
 						"<td style='white-space:nowrap'>" +
-						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_money_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("send_nxt") + "</a>&nbsp;" +
+						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_money_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("send") + " " + NRS.constants.COIN_SYMBOL + "</a>&nbsp;" +
 						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_message_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("message") + "</a>&nbsp;" +
 						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#delete_contact_modal' data-contact='" + String(contact.id).escapeHTML() + "'>" + $.t("delete") + "</a>" +
 						"</td>" +
@@ -87,7 +87,7 @@ var NRS = (function(NRS, $) {
 			};
 		}
 
-		if (/^\d+$/.test(data.name) || /^XEL\-/i.test(data.name)) {
+		if (NRS.isNumericAccount(data.name) || NRS.isRsAccount(data.name)) {
 			return {
 				"error": $.t("error_contact_name_alpha")
 			};
@@ -110,7 +110,7 @@ var NRS = (function(NRS, $) {
 			}
 		}
 		var address;
-		if (/^XEL\-/i.test(data.account_id)) {
+		if (NRS.isRsAccount(data.account_id)) {
 			data.account_rs = data.account_id;
 			address = new NxtAddress();
 			if (address.set(data.account_rs)) {
@@ -200,7 +200,7 @@ var NRS = (function(NRS, $) {
 		var contactId = parseInt($invoker.data("contact"), 10);
 		if (!contactId && NRS.selectedContext) {
 			var accountId = NRS.selectedContext.data("account");
-			var dbKey = (/^XEL\-/i.test(accountId) ? "accountRS" : "account");
+			var dbKey = (NRS.isRsAccount(accountId) ? "accountRS" : "account");
 			var dbQuery = {};
 			dbQuery[dbKey] = accountId;
 			NRS.storageSelect("contacts", [dbQuery], function(error, contact) {
@@ -255,7 +255,7 @@ var NRS = (function(NRS, $) {
 			};
 		}
 		var address;
-		if (/^XEL\-/i.test(data.account_id)) {
+		if (NRS.isRsAccount(data.account_id)) {
 			data.account_rs = data.account_id;
 			address = new NxtAddress();
 			if (address.set(data.account_rs)) {
@@ -457,7 +457,7 @@ var NRS = (function(NRS, $) {
 	});
 
 	$("#import_contacts_button").on("click", function() {
-		if (window.FileReader) {
+		if (NRS.isFileReaderSupported()) {
             $("#import_contacts_button_field").click();
         } else if (window.java) {
             var result = java.readContactsFile();

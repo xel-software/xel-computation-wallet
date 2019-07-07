@@ -34,24 +34,22 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Locale;
 
 public final class Crypto {
 
     private static final boolean useStrongSecureRandom = Nxt.getBooleanProperty("nxt.useStrongSecureRandom");
 
-    private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
-        @Override
-        protected SecureRandom initialValue() {
-            try {
-                SecureRandom secureRandom = useStrongSecureRandom ? SecureRandom.getInstanceStrong() : new SecureRandom();
-                secureRandom.nextBoolean();
-                return secureRandom;
-            } catch (NoSuchAlgorithmException e) {
-                Logger.logErrorMessage("No secure random provider available");
-                throw new RuntimeException(e.getMessage(), e);
-            }
+    private static final ThreadLocal<SecureRandom> secureRandom = ThreadLocal.withInitial(() -> {
+        try {
+            SecureRandom secureRandom = useStrongSecureRandom ? SecureRandom.getInstanceStrong() : new SecureRandom();
+            secureRandom.nextBoolean();
+            return secureRandom;
+        } catch (NoSuchAlgorithmException e) {
+            Logger.logErrorMessage("No secure random provider available");
+            throw new RuntimeException(e.getMessage(), e);
         }
-    };
+    });
 
     private Crypto() {} //never
 
@@ -141,6 +139,10 @@ public final class Crypto {
         System.arraycopy(v, 0, signature, 0, 32);
         System.arraycopy(h, 0, signature, 32, 32);
         return signature;
+    }
+
+    public static boolean verify(byte[] signature, byte[] message, byte[] publicKey) {
+        return verify(signature, message, publicKey, true);
     }
 
     public static boolean verify(byte[] signature, byte[] message, byte[] publicKey, boolean enforceCanonical) {
@@ -287,7 +289,7 @@ public final class Crypto {
     }
 
     public static long rsDecode(String rsString) {
-        rsString = rsString.toUpperCase();
+        rsString = rsString.toUpperCase(Locale.ROOT);
         try {
             long id = ReedSolomon.decode(rsString);
             if (! rsString.equals(ReedSolomon.encode(id))) {

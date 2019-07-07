@@ -19,6 +19,7 @@ package org.xel;
 import org.xel.Account.ControlType;
 import org.xel.NxtException.AccountControlException;
 import org.xel.VoteWeighting.VotingModel;
+import org.xel.db.DbClause;
 import org.xel.db.DbIterator;
 import org.xel.db.DbKey;
 import org.xel.db.DbUtils;
@@ -200,7 +201,6 @@ public final class AccountRestrictions {
     static void checkTransaction(Transaction transaction, boolean validatingAtFinish) throws NxtException.NotCurrentlyValidException {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (senderAccount == null) {
-            (new Exception()).printStackTrace();
             throw new NxtException.NotCurrentlyValidException("Account " + Long.toUnsignedString(transaction.getSenderId()) + " does not exist yet");
         }
         if (senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {

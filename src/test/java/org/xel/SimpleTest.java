@@ -17,7 +17,7 @@ public class SimpleTest extends AbstractForgingTest {
 
     @Test
     public void testStrangeBlock(){
-        System.out.println(Constants.EPOCH_BEGINNING);
+        System.out.println(Genesis.EPOCH_BEGINNING);
     }
 
 

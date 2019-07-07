@@ -129,7 +129,7 @@ public class APICall {
             when(resp.getWriter()).thenReturn(writer);
             APIServlet apiServlet = new APIServlet();
             apiServlet.doPost(req, resp);
-        } catch (ServletException | IOException e) {
+        } catch (IOException e) {
             Assert.fail();
         }
         JSONObject response = (JSONObject) JSONValue.parse(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));

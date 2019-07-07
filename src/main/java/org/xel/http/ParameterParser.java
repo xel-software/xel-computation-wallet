@@ -48,8 +48,8 @@ import static org.xel.http.JSONResponses.*;
 
 public final class ParameterParser {
 
-    private static String convertStreamToString(final InputStream is) {
-        final Scanner s = new Scanner(is);
+    private static String convertStreamToString(final java.io.InputStream is) {
+        final java.util.Scanner s = new java.util.Scanner(is);
         s.useDelimiter("\\A");
         final String res = s.hasNext() ? s.next() : "";
         s.close();
@@ -195,6 +195,14 @@ public final class ParameterParser {
         return Convert.parseHexString(paramValue);
     }
 
+    public static String getParameter(HttpServletRequest req, String name) throws ParameterException {
+        String value = Convert.emptyToNull(req.getParameter(name));
+        if (value == null) {
+            throw new ParameterException(missing(name));
+        }
+        return value;
+    }
+
     public static long getAccountId(HttpServletRequest req, boolean isMandatory) throws ParameterException {
         return getAccountId(req, "account", isMandatory);
     }
@@ -263,6 +271,15 @@ public final class ParameterParser {
             throw new ParameterException(UNKNOWN_POLL);
         }
         return poll;
+    }
+
+
+    public static long getQuantityQNT(HttpServletRequest req) throws ParameterException {
+        return getLong(req, "quantityQNT", 1L, Constants.MAX_ASSET_QUANTITY_QNT, true);
+    }
+
+    public static long getAmountNQTPerQNT(HttpServletRequest req) throws ParameterException {
+        return getLong(req, "amountNQTPerQNT", 1L, Constants.MAX_BALANCE_NQT, true);
     }
 
 
@@ -664,6 +681,88 @@ public final class ParameterParser {
                 return new Appendix.UnencryptedEncryptedMessage(plainMessageBytes, isText, compress, recipientPublicKey);
             }
         }
+    }
+
+    public static Attachment.TaggedDataUpload getTaggedData(HttpServletRequest req) throws ParameterException, NxtException.NotValidException {
+        String name = Convert.emptyToNull(req.getParameter("name"));
+        String description = Convert.nullToEmpty(req.getParameter("description"));
+        String tags = Convert.nullToEmpty(req.getParameter("tags"));
+        String type = Convert.nullToEmpty(req.getParameter("type")).trim();
+        String channel = Convert.nullToEmpty(req.getParameter("channel"));
+        boolean isText = !"false".equalsIgnoreCase(req.getParameter("isText"));
+        String filename = Convert.nullToEmpty(req.getParameter("filename")).trim();
+        String dataValue = Convert.emptyToNull(req.getParameter("data"));
+        byte[] data;
+        if (dataValue == null) {
+            try {
+                Part part = req.getPart("file");
+                if (part == null) {
+                    throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+                }
+                FileData fileData = new FileData(part).invoke();
+                data = fileData.getData();
+                // Depending on how the client submits the form, the filename, can be a regular parameter
+                // or encoded in the multipart form. If its not a parameter we take from the form
+                if (filename.isEmpty() && fileData.getFilename() != null) {
+                    filename = fileData.getFilename().trim();
+                }
+                if (name == null) {
+                    name = filename;
+                }
+            } catch (IOException | ServletException e) {
+                Logger.logDebugMessage("error in reading file data", e);
+                throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+            }
+        } else {
+            data = isText ? Convert.toBytes(dataValue) : Convert.parseHexString(dataValue);
+        }
+
+        String detectedMimeType = Search.detectMimeType(data, filename);
+        if (detectedMimeType != null) {
+            isText = detectedMimeType.startsWith("text/");
+            if (type.isEmpty()) {
+                type = detectedMimeType.substring(0, Math.min(detectedMimeType.length(), Constants.MAX_TAGGED_DATA_TYPE_LENGTH));
+            }
+        }
+
+        if (name == null) {
+            throw new ParameterException(MISSING_NAME);
+        }
+        name = name.trim();
+        if (name.length() > Constants.MAX_TAGGED_DATA_NAME_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_NAME);
+        }
+
+        if (description.length() > Constants.MAX_TAGGED_DATA_DESCRIPTION_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_DESCRIPTION);
+        }
+
+        if (tags.length() > Constants.MAX_TAGGED_DATA_TAGS_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_TAGS);
+        }
+
+        type = type.trim();
+        if (type.length() > Constants.MAX_TAGGED_DATA_TYPE_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_TYPE);
+        }
+
+        channel = channel.trim();
+        if (channel.length() > Constants.MAX_TAGGED_DATA_CHANNEL_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_CHANNEL);
+        }
+
+        if (data.length == 0) {
+            throw new ParameterException(INCORRECT_DATA_ZERO_LENGTH);
+        }
+
+        if (data.length > Constants.MAX_TAGGED_DATA_DATA_LENGTH) {
+            throw new ParameterException(INCORRECT_DATA_TOO_LONG);
+        }
+
+        if (filename.length() > Constants.MAX_TAGGED_DATA_FILENAME_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
+        }
+        return new Attachment.TaggedDataUpload(name, description, tags, type, channel, isText, filename, data);
     }
 
     private ParameterParser() {} // never

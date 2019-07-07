@@ -16,7 +16,6 @@
 
 package org.xel.http;
 
-import org.xel.NxtException;
 import org.xel.http.APIServlet.APIRequestHandler;
 import org.xel.peer.Peer;
 import org.xel.peer.Peers;
@@ -37,8 +36,7 @@ public class AddPeer extends APIRequestHandler {
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request)
-            throws NxtException {
+    protected JSONStreamAware processRequest(HttpServletRequest request) {
         String peerAddress = Convert.emptyToNull(request.getParameter("peer"));
         if (peerAddress == null) {
             return MISSING_PEER;

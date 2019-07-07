@@ -344,8 +344,7 @@ class EventListener implements Runnable, AsyncListener, TransactionalDb.Transact
                 //
                 // Return immediately if we have a pending event
                 //
-                events = new ArrayList<>();
-                events.addAll(pendingEvents);
+                events = new ArrayList<>(pendingEvents);
                 pendingEvents.clear();
                 timestamp = System.currentTimeMillis();
             } else {
@@ -508,11 +507,7 @@ class EventListener implements Runnable, AsyncListener, TransactionalDb.Transact
         Thread thread = Thread.currentThread();
         lock.lock();
         try {
-            Iterator<PendingEvent> it = dbEvents.iterator();
-            while (it.hasNext()) {
-                if (it.next().getThread() == thread)
-                    it.remove();
-            }
+            dbEvents.removeIf(pendingEvent -> pendingEvent.getThread() == thread);
         } finally {
             lock.unlock();
         }

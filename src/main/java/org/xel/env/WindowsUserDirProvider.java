@@ -16,11 +16,13 @@
 
 package org.xel.env;
 
+import org.xel.Nxt;
+
 import java.nio.file.Paths;
 
 public class WindowsUserDirProvider extends DesktopUserDirProvider {
 
-    private static final String NXT_USER_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Roaming", "XEL").toString();
+    private static final String NXT_USER_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Roaming", Nxt.APPLICATION.toUpperCase()).toString();
 
     @Override
     public String getUserHomeDir() {

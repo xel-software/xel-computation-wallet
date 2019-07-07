@@ -16,7 +16,6 @@
 
 package org.xel.http;
 
-import org.xel.NxtException;
 import org.xel.peer.Peer;
 import org.xel.peer.Peers;
 import org.xel.util.Convert;
@@ -38,7 +37,7 @@ public class SetAPIProxyPeer extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
+    protected JSONStreamAware processRequest(HttpServletRequest request) {
         String peerAddress = Convert.emptyToNull(request.getParameter("peer"));
         if (peerAddress == null) {
             Peer peer = APIProxy.getInstance().setForcedPeer(null);

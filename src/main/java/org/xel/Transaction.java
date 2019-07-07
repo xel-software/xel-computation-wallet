@@ -24,8 +24,6 @@ import java.util.List;
 
 public interface Transaction {
 
-
-
     interface Builder {
 
         Builder recipientId(long recipientId);

@@ -16,8 +16,6 @@
 
 package org.xel.db;
 
-import org.json.simple.JSONArray;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,7 +24,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public final class DbIterator<T> implements Iterator<T>, Iterable<T>, AutoCloseable {
-
 
     public interface ResultSetReader<T> {
         T get(Connection con, ResultSet rs) throws Exception;

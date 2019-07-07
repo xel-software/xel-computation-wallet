@@ -17,14 +17,12 @@ package org.xel.http;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.xel.*;
-import org.xel.Redeem;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import org.xel.NxtException;
+import org.xel.Redeem;
 
 public final class GetUnclaimedRedeems extends APIServlet.APIRequestHandler {
 

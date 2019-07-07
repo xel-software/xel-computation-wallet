@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 public class JsonMessageTest {
 
@@ -87,11 +88,11 @@ public class JsonMessageTest {
         JSONObject response;
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
-            try (Writer writer = new OutputStreamWriter(byteArrayOutputStream, "UTF-8")) {
+            try (Writer writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
                 request.writeJSONString(writer);
             }
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-            try (Reader reader = new BufferedReader(new InputStreamReader(byteArrayInputStream, "UTF-8"))) {
+            try (Reader reader = new BufferedReader(new InputStreamReader(byteArrayInputStream, StandardCharsets.UTF_8))) {
                 response = (JSONObject) JSONValue.parse(reader);
             }
         } catch (IOException e) {

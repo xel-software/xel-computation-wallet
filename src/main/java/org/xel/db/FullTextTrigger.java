@@ -54,6 +54,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -69,11 +70,11 @@ import java.util.stream.Stream;
  * the default schema (PUBLIC).
  *
  * The database aliases are defined as follows:
- *   CREATE ALIAS FTL_CREATE_INDEX FOR "FullTextTrigger.createIndex"
+ *   CREATE ALIAS FTL_CREATE_INDEX FOR "nxt.db.FullTextTrigger.createIndex"
  *       CALL FTL_CREATE(schema, table, columnList)
- *   CREATE ALIAS FTL_DROP_INDEX FOR "FullTextTrigger.dropIndex"
+ *   CREATE ALIAS FTL_DROP_INDEX FOR "nxt.db.FullTextTrigger.dropIndex"
  *       CALL FTL_DROP(schema, table)
- *   CREATE ALIAS FTL_SEARCH FOR "FullTextTrigger.search"
+ *   CREATE ALIAS FTL_SEARCH FOR "nxt.db.FullTextTrigger.search"
  *       CALL FTL_SEARCH(schema, table, query, limit, offset)
  *
  * FTL_CREATE_INDEX is called to create a fulltext index for a table.  It is
@@ -93,7 +94,7 @@ import java.util.stream.Stream;
  *   SCORE   - the search hit score (Float)
  *
  * The table index trigger is defined as follows:
- *   CREATE TRIGGER trigger_name AFTER INSERT,UPDATE,DELETE ON table_name FOR EACH ROW CALL "FullTextTrigger"
+ *   CREATE TRIGGER trigger_name AFTER INSERT,UPDATE,DELETE ON table_name FOR EACH ROW CALL "nxt.db.FullTextTrigger"
  */
 public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCallback {
 
@@ -288,8 +289,8 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      */
     public static void createIndex(Connection conn, String schema, String table, String columnList)
                                     throws SQLException {
-        String upperSchema = schema.toUpperCase();
-        String upperTable = table.toUpperCase();
+        String upperSchema = schema.toUpperCase(Locale.ROOT);
+        String upperTable = table.toUpperCase(Locale.ROOT);
         String tableName = upperSchema + "." + upperTable;
         getIndexAccess(conn);
         //
@@ -303,7 +304,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(String.format("INSERT INTO FTL.INDEXES (schema, table, columns) "
                     + "VALUES('%s', '%s', '%s')",
-                    upperSchema, upperTable, columnList.toUpperCase()));
+                    upperSchema, upperTable, columnList.toUpperCase(Locale.ROOT)));
             stmt.execute(String.format("CREATE TRIGGER FTL_%s AFTER INSERT,UPDATE,DELETE ON %s "
                     + "FOR EACH ROW CALL \"%s\"",
                     upperTable, tableName, FullTextTrigger.class.getName()));
@@ -334,8 +335,8 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @throws  SQLException        Unable to drop fulltext index
      */
     public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
-        String upperSchema = schema.toUpperCase();
-        String upperTable = table.toUpperCase();
+        String upperSchema = schema.toUpperCase(Locale.ROOT);
+        String upperTable = table.toUpperCase(Locale.ROOT);
         boolean reindex = false;
         //
         // Drop an existing database trigger
@@ -434,7 +435,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
             QueryParser parser = new QueryParser("_DATA", analyzer);
             parser.setDateResolution("_MODIFIED", DateTools.Resolution.SECOND);
             parser.setDefaultOperator(QueryParser.Operator.AND);
-            Query query = parser.parse("_TABLE:" + schema.toUpperCase() + "." + table.toUpperCase() + " AND (" + queryText + ")");
+            Query query = parser.parse("_TABLE:" + schema.toUpperCase(Locale.ROOT) + "." + table.toUpperCase(Locale.ROOT) + " AND (" + queryText + ")");
             TopDocs documents = indexSearcher.search(query, limit);
             ScoreDoc[] hits = documents.scoreDocs;
             int resultCount = Math.min(hits.length, (limit == 0 ? hits.length : limit));
@@ -555,11 +556,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
 
     /**
      * Close the trigger (Trigger interface)
-     *
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void close() throws SQLException {
+    public void close() {
         if (isEnabled) {
             isEnabled = false;
             indexTriggers.remove(tableName);
@@ -568,11 +567,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
 
     /**
      * Remove the trigger (Trigger interface)
-     *
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void remove() throws SQLException {
+    public void remove() {
         if (isEnabled) {
             isEnabled = false;
             indexTriggers.remove(tableName);
@@ -585,10 +582,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @param   conn                Database connection
      * @param   oldRow              The old row or null
      * @param   newRow              The new row or null
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         //
         // Ignore the trigger if it is not enabled
         //
@@ -662,13 +658,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
     public void rollback() {
         Thread thread = Thread.currentThread();
         synchronized(tableUpdates) {
-            Iterator<TableUpdate> it = tableUpdates.iterator();
-            while (it.hasNext()) {
-                TableUpdate update = it.next();
-                if (update.getThread() == thread) {
-                    it.remove();
-                }
-            }
+            tableUpdates.removeIf(update -> update.getThread() == thread);
         }
     }
 

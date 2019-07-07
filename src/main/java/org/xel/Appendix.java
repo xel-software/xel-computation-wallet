@@ -223,7 +223,7 @@ public interface Appendix {
             if (messageLength < 0) {
                 messageLength &= Integer.MAX_VALUE;
             }
-            if (messageLength > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
+            if (messageLength > 1000) {
                 throw new NxtException.NotValidException("Invalid arbitrary message length: " + messageLength);
             }
             this.message = new byte[messageLength];
@@ -299,6 +299,7 @@ public interface Appendix {
             buffer.put(message);
         }
 
+        // FIXME should not be public
         @Override
         public void putMyJSON(JSONObject json) {
             json.put("message", Convert.toString(message, isText));
@@ -316,8 +317,6 @@ public interface Appendix {
                 throw new NxtException.NotValidException("Invalid arbitrary message length: " + message.length);
             }
         }
-
-
 
         @Override
         void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
@@ -432,7 +431,7 @@ public interface Appendix {
         }
 
         @Override
-        public void putMyJSON(JSONObject json) {
+        void putMyJSON(JSONObject json) {
             if (prunableMessage != null) {
                 json.put("message", Convert.toString(prunableMessage.getMessage(), prunableMessage.messageIsText()));
                 json.put("messageIsText", prunableMessage.messageIsText());
@@ -672,8 +671,10 @@ public interface Appendix {
             this.isText = false;
             this.isCompressed = false;
         }
+        
         @Override
         void applyComputational(Transaction transaction) {}
+        
         private PrunableEncryptedMessage(JSONObject attachmentJSON) {
             super(attachmentJSON);
             String hashString = Convert.emptyToNull((String) attachmentJSON.get("encryptedMessageHash"));

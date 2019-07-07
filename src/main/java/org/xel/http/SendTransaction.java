@@ -16,13 +16,14 @@
 
 package org.xel.http;
 
-import org.xel.Nxt;
 import org.xel.NxtException;
 import org.xel.Transaction;
 import org.xel.peer.Peers;
 import org.xel.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.xel.Appendix;
+import org.xel.Nxt;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -52,14 +53,10 @@ import java.util.Collections;
  * <p>
  * Prunable appendages are classes implementing the {@link nxt.Appendix.Prunable} interface.
  */
-
 public final class SendTransaction extends APIServlet.APIRequestHandler {
 
     static final SendTransaction instance = new SendTransaction();
-    @Override
-    protected final boolean requirePost() {
-        return false;
-    }
+
     private SendTransaction() {
         super(new APITag[] {APITag.TRANSACTIONS}, "transactionJSON", "transactionBytes", "prunableAttachmentJSON");
     }
@@ -70,47 +67,70 @@ public final class SendTransaction extends APIServlet.APIRequestHandler {
         String transactionJSON = Convert.emptyToNull(req.getParameter("transactionJSON"));
         String transactionBytes = Convert.emptyToNull(req.getParameter("transactionBytes"));
         String prunableAttachmentJSON = Convert.emptyToNull(req.getParameter("prunableAttachmentJSON"));
-        boolean comp = ParameterParser.getBooleanByString(req,"computation", false);
 
         JSONObject response = new JSONObject();
+		
+		if(Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)) {
+	        try {
+	            Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON);
+	            Transaction transaction = builder.build();
+	            Peers.sendToSomePeers(Collections.singletonList(transaction));
+	            response.put("transaction", transaction.getStringId());
+	            response.put("fullHash", transaction.getFullHash());
+	        } catch (NxtException.ValidationException|RuntimeException e) {
+	            JSONData.putException(response, e, "Failed to broadcast transaction");
+	        }
+		}
+		else {
+			boolean comp = ParameterParser.getBooleanByString(req,"computation", false);
+	        if(comp == false){
+	            try {
+	                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON);
+	                Transaction transaction = builder.build();
+	                transaction.validate();
+	                if(!transaction.verifySignature()){
+	                    JSONData.putException(response, new Exception("Signature wrong"), "Failed to broadcast transaction (computational): transaction signature is skewed");
+	                    return response;
+	                };
+	                Peers.sendToSomePeers(Collections.singletonList(transaction));
+	                Nxt.getTemporaryComputationTransactionProcessor().processLater(Collections.singletonList(transaction));
+	                response.put("transaction", transaction.getStringId());
+	                response.put("fullHash", transaction.getFullHash());
+	            } catch (NxtException.ValidationException | RuntimeException e) {
+	                JSONData.putException(response, e, "Failed to broadcast transaction");
+	            }
 
-        if(comp == false){
-            try {
-                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON);
-                Transaction transaction = builder.build();
-                transaction.validate();
-                if(!transaction.verifySignature()){
-                    JSONData.putException(response, new Exception("Signature wrong"), "Failed to broadcast transaction (computational): transaction signature is skewed");
-                    return response;
-                };
-                Peers.sendToSomePeers(Collections.singletonList(transaction));
-                Nxt.getTemporaryComputationTransactionProcessor().processLater(Collections.singletonList(transaction));
-                response.put("transaction", transaction.getStringId());
-                response.put("fullHash", transaction.getFullHash());
-            } catch (NxtException.ValidationException | RuntimeException e) {
-                JSONData.putException(response, e, "Failed to broadcast transaction");
-            }
-
-        }else{
-            try {
-                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON, true);
-                Transaction transaction = builder.buildComputation(0);
-                transaction.validateComputational();
-                if(!transaction.verifySignature()){
-                    JSONData.putException(response, new Exception("Signature wrong"), "Failed to broadcast transaction (computational): transaction signature is skewed");
-                    return response;
-                };
-                Peers.sendToSomePeersComputation(Collections.singletonList(transaction));
-                Nxt.getTemporaryComputationTransactionProcessor().processLater(Collections.singletonList(transaction));
-                response.put("transaction", transaction.getStringId());
-                response.put("fullHash", transaction.getFullHash());
-            } catch (NxtException.ValidationException | RuntimeException e) {
-                JSONData.putException(response, e, "Failed to broadcast transaction (computational)");
-            }
-
-        }
+	        } else {
+	            try {
+	                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON, true);
+	                Transaction transaction = builder.buildComputation(0);
+	                transaction.validateComputational();
+	                if(!transaction.verifySignature()){
+	                    JSONData.putException(response, new Exception("Signature wrong"), "Failed to broadcast transaction (computational): transaction signature is skewed");
+	                    return response;
+	                };
+	                Peers.sendToSomePeersComputation(Collections.singletonList(transaction));
+	                Nxt.getTemporaryComputationTransactionProcessor().processLater(Collections.singletonList(transaction));
+	                response.put("transaction", transaction.getStringId());
+	                response.put("fullHash", transaction.getFullHash());
+	            } catch (NxtException.ValidationException | RuntimeException e) {
+	                JSONData.putException(response, e, "Failed to broadcast transaction (computational)");
+	            }
+	        }
+		}
 
         return response;
+
+    }
+
+    @Override
+    protected boolean requirePost() {
+        return true;
+    }
+
+    @Override
+    protected boolean requirePassword() {
+        return true;
     }
 
     @Override

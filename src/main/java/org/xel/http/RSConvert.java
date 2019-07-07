@@ -46,6 +46,7 @@ public final class RSConvert extends APIServlet.APIRequestHandler {
             }
             JSONObject response = new JSONObject();
             JSONData.putAccount(response, "account", accountId);
+            response.put("accountLongId", String.valueOf(accountId));
             return response;
         } catch (RuntimeException e) {
             return INCORRECT_ACCOUNT;

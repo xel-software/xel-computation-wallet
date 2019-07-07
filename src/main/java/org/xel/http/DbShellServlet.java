@@ -23,7 +23,6 @@ import org.h2.tools.Shell;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,7 +68,7 @@ public final class DbShellServlet extends HttpServlet {
                     "</head>\n" +
                     "<body>\n";
 
-    private static final String barter =
+    private static final String footer =
                     "</body>\n" +
                     "</html>\n";
 
@@ -106,7 +105,7 @@ public final class DbShellServlet extends HttpServlet {
 
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
@@ -129,12 +128,12 @@ public final class DbShellServlet extends HttpServlet {
         try (PrintStream out = new PrintStream(resp.getOutputStream())) {
             out.print(header);
             out.print(body);
-            out.print(barter);
+            out.print(footer);
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
@@ -164,7 +163,7 @@ public final class DbShellServlet extends HttpServlet {
             try (PrintStream out = new PrintStream(resp.getOutputStream())) {
                 out.print(header);
                 out.print(body);
-                out.print(barter);
+                out.print(footer);
             }
             return;
         }

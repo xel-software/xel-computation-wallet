@@ -31,13 +31,14 @@ import java.util.List;
 public final class BaseTargetTest {
 
     private static final long MIN_BASE_TARGET = Constants.INITIAL_BASE_TARGET * 9 / 10;
-    private static final long MAX_BASE_TARGET = Constants.isTestnet ? Constants.MAX_BASE_TARGET : Constants.INITIAL_BASE_TARGET * 50;
+    private static final long MAX_BASE_TARGET = Constants.INITIAL_BASE_TARGET * (Constants.isTestnet ? Constants.MAX_BALANCE_NXT : 50);
 
-    private static final int MIN_BLOCKTIME_LIMIT = 53;
-    private static final int MAX_BLOCKTIME_LIMIT = 67;
+    private static final int MIN_BLOCKTIME_LIMIT = Constants.BLOCK_TIME - 7;
+    private static final int MAX_BLOCKTIME_LIMIT = Constants.BLOCK_TIME + 7;
 
     private static final int GAMMA = 64;
 
+	//private static final int START_HEIGHT = 20;
     private static final int START_HEIGHT = 170000;
 
     private static final boolean USE_EWMA = false;
@@ -47,10 +48,10 @@ public final class BaseTargetTest {
 
     private static long calculateBaseTarget(long previousBaseTarget, long blocktimeEMA) {
         long baseTarget;
-        if (blocktimeEMA > 60) {
-            baseTarget = (previousBaseTarget * Math.min(blocktimeEMA, MAX_BLOCKTIME_LIMIT)) / 60;
+        if (blocktimeEMA > Constants.BLOCK_TIME) {
+            baseTarget = (previousBaseTarget * Math.min(blocktimeEMA, MAX_BLOCKTIME_LIMIT)) / Constants.BLOCK_TIME;
         } else {
-            baseTarget = previousBaseTarget - previousBaseTarget * GAMMA * (60 - Math.max(blocktimeEMA, MIN_BLOCKTIME_LIMIT)) / 6000;
+            baseTarget = previousBaseTarget - previousBaseTarget * GAMMA * (Constants.BLOCK_TIME - Math.max(blocktimeEMA, MIN_BLOCKTIME_LIMIT)) / (100 * Constants.BLOCK_TIME);
         }
         if (baseTarget < 0 || baseTarget > MAX_BASE_TARGET) {
             baseTarget = MAX_BASE_TARGET;
@@ -102,7 +103,7 @@ public final class BaseTargetTest {
 
             int count = 0;
 
-            String dbLocation = Constants.isTestnet ? "nxt_test_db" : "nxt_db";
+            String dbLocation = Constants.isTestnet ? "xel_test_db" : "xel_db";
 
             try (Connection con = DriverManager.getConnection("jdbc:h2:./" + dbLocation + "/nxt;DB_CLOSE_ON_EXIT=FALSE;MVCC=TRUE", "sa", "sa");
                  PreparedStatement selectBlocks = con.prepareStatement("SELECT * FROM block WHERE height > " + height + " ORDER BY db_id ASC");

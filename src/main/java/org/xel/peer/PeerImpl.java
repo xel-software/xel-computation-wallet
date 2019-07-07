@@ -16,7 +16,11 @@
 
 package org.xel.peer;
 
-import org.xel.*;
+import org.xel.Account;
+import org.xel.BlockchainProcessor;
+import org.xel.Constants;
+import org.xel.Nxt;
+import org.xel.NxtException;
 import org.xel.http.API;
 import org.xel.http.APIEnum;
 import org.xel.util.Convert;
@@ -49,7 +53,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
@@ -162,7 +170,7 @@ final class PeerImpl implements Peer {
         boolean versionChanged = version == null || !version.equals(this.version);
         this.version = version;
         isOldVersion = false;
-        if (Nxt.APPLICATION.equals(application)) {
+        if (Nxt.APPLICATION.substring(0, 3).equals(application.substring(0, 3))) {
             isOldVersion = Peers.isOldVersion(version, Constants.MIN_VERSION);
             if (isOldVersion) {
                 if (versionChanged) {
@@ -264,11 +272,17 @@ final class PeerImpl implements Peer {
     }
 
     void setBlockchainState(Object blockchainStateObj) {
-        if (blockchainStateObj instanceof Integer) {
-            int blockchainStateInt = (int)blockchainStateObj;
+        BlockchainState state = null;
+        if (blockchainStateObj instanceof Number) {
+            int blockchainStateInt = ((Number)blockchainStateObj).intValue();
             if (blockchainStateInt >= 0 && blockchainStateInt < BlockchainState.values().length) {
-                this.blockchainState = BlockchainState.values()[blockchainStateInt];
+                state = BlockchainState.values()[blockchainStateInt];
             }
+        }
+        if (state != null) {
+            this.blockchainState = state;
+        } else {
+            Logger.logDebugMessage("Invalid blockchain state " + blockchainStateObj + " " + getHost());
         }
     }
 
@@ -556,11 +570,13 @@ final class PeerImpl implements Peer {
             // Check for an error response
             //
             if (response != null && response.get("error") != null) {
-                deactivate();
-                if (Errors.SEQUENCE_ERROR.equals(response.get("error")) && request != Peers.getMyPeerInfoRequest()) {
+                Object error = response.get("error");
+                if (Errors.SEQUENCE_ERROR.equals(error) && request != Peers.getMyPeerInfoRequest()) {
                     Logger.logDebugMessage("Sequence error, reconnecting to " + host);
+                    deactivate();
                     connect();
-                } else {
+                } else if (!Errors.DOWNLOADING.equals(error) && !Errors.LIGHT_CLIENT.equals(error)) {
+                    deactivate();
                     Logger.logDebugMessage("Peer " + host + " version " + version + " returned error: " +
                             response.toJSONString() + ", request was: " + JSON.toString(request) +
                             ", disconnecting");
@@ -881,7 +897,7 @@ final class PeerImpl implements Peer {
     public boolean isOpenAPI() {
         return providesService(Peer.Service.API) || providesService(Peer.Service.API_SSL);
     }
-
+	
     @Override
     public boolean isComputationRedirectorPeer() {
         return providesService(Service.COMPUTATION_REDIRECTOR);

@@ -95,9 +95,9 @@ public final class Peers {
     static final int readTimeout;
     static final int blacklistingPeriod;
     static final boolean getMorePeers;
-    static final int MAX_REQUEST_SIZE = 1024 * 1024;
-    static final int MAX_RESPONSE_SIZE = 1024 * 1024;
-    static final int MAX_MESSAGE_SIZE = 10 * 1024 * 1024;
+    static final int MAX_REQUEST_SIZE = Nxt.getIntProperty("nxt.maxPeerRequestSize", 1024 * 1024);
+    static final int MAX_RESPONSE_SIZE = Nxt.getIntProperty("nxt.maxPeerResponseSize", 1024 * 1024);
+    static final int MAX_MESSAGE_SIZE = Nxt.getIntProperty("nxt.maxPeerMessageSize", 10 * 1024 * 1024);
     public static final int MIN_COMPRESS_SIZE = 256;
     static final boolean useWebSockets;
     static final int webSocketIdleTimeout;
@@ -267,15 +267,15 @@ public final class Peers {
             json.put("apiPort", API.openAPIPort);
             servicesList.add(Peer.Service.API);
         }
-        if (API.openAPIPort > 0) {
-            json.put("apiPort", API.openAPIPort);
-            servicesList.add(Peer.Service.API);
+        if (API.openAPISSLPort > 0) {
+            json.put("apiSSLPort", API.openAPISSLPort);
+            servicesList.add(Peer.Service.API_SSL);
         }
-        if (Nxt.getBooleanProperty("nxt.enableComputationBlockchainRedirector") || Nxt.getBooleanProperty("nxt.enableComputationEngine")) {
+        if (Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)) {
             servicesList.add(Peer.Service.COMPUTATION_REDIRECTOR);
         }
 
-        if (API.openAPIPort > 0 || API.openAPISSLPort > 0) {
+        if (API.isOpenAPI) {
             EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
             API.disabledAPIs.forEach(apiName -> {
@@ -510,12 +510,10 @@ public final class Peers {
                     if (!hasEnoughConnectedPublicPeers(Peers.maxNumberOfConnectedPublicPeers)) {
                         List<Future<?>> futures = new ArrayList<>();
                         List<Peer> hallmarkedPeers = getPeers(peer -> !peer.isBlacklisted()
-                                && peer.getAnnouncedAddress() != null
                                 && peer.getState() != Peer.State.CONNECTED
                                 && now - peer.getLastConnectAttempt() > 600
                                 && peer.providesService(Peer.Service.HALLMARK));
                         List<Peer> nonhallmarkedPeers = getPeers(peer -> !peer.isBlacklisted()
-                                && peer.getAnnouncedAddress() != null
                                 && peer.getState() != Peer.State.CONNECTED
                                 && now - peer.getLastConnectAttempt() > 600
                                 && !peer.providesService(Peer.Service.HALLMARK));
@@ -534,7 +532,6 @@ public final class Peers {
                             }
                             connectSet.forEach(peer -> futures.add(peersService.submit(() -> {
                                 peer.connect();
-                                Logger.logInfoMessage("Trying to establish connection to: " + peer.getHost());
                                 if (peer.getState() == Peer.State.CONNECTED &&
                                             enableHallmarkProtection && peer.getWeight() == 0 &&
                                             hasTooManyOutboundConnections()) {
@@ -765,7 +762,7 @@ public final class Peers {
                     Db.db.endTransaction();
                 }
             }
-        }), Event.CHANGED_SERVICES);
+        }), Peers.Event.CHANGED_SERVICES);
     }
 
     static {
@@ -1128,22 +1125,22 @@ public final class Peers {
             }
         });
     }
+    
+    public static Peer getAnyPeerWithService(final Peer.State state, final boolean applyPullThreshold, Peer.Service s) {
+        return getWeightedPeerWithService(getPublicPeers(state, applyPullThreshold,s), s);
+    }
+
+    public static List<Peer> getPublicPeers(final Peer.State state, final boolean applyPullThreshold, Peer.Service s) {
+        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == state && peer.providesService(s) && (!applyPullThreshold || !Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold));
+    }
 
     public static Peer getAnyPeer(final Peer.State state, final boolean applyPullThreshold) {
         return getWeightedPeer(getPublicPeers(state, applyPullThreshold));
     }
 
-    public static Peer getAnyPeerWithService(final Peer.State state, final boolean applyPullThreshold, Peer.Service s) {
-        return getWeightedPeerWithService(getPublicPeers(state, applyPullThreshold,s), s);
-    }
-
     public static List<Peer> getPublicPeers(final Peer.State state, final boolean applyPullThreshold) {
-        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == state && peer.getAnnouncedAddress() != null
+        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == state && peer.shareAddress()
                 && (!applyPullThreshold || !Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold));
-    }
-
-    public static List<Peer> getPublicPeers(final Peer.State state, final boolean applyPullThreshold, Peer.Service s) {
-        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == state && peer.providesService(s) && (!applyPullThreshold || !Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold));
     }
 
     public static Peer getWeightedPeer(List<Peer> selectedPeers) {
@@ -1285,7 +1282,7 @@ public final class Peers {
     }
 
     private static boolean hasEnoughConnectedPublicPeers(int limit) {
-        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null
+        return getPeers(peer -> !peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.shareAddress()
                 && (! Peers.enableHallmarkProtection || peer.getWeight() > 0), limit).size() >= limit;
     }
 

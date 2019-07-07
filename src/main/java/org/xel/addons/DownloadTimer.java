@@ -41,11 +41,11 @@ public final class DownloadTimer implements AddOn {
             writer.println("height,time,dtime,bps,transations,dtransactions,tps");
             Nxt.getBlockchainProcessor().addListener(new Listener<Block>() {
 
-                final int interval = 10000;
-                final long startTime = System.currentTimeMillis();
-                long previousTime = 0;
-                long transactions = 0;
-                long dtransactions = 0;
+                private final int interval = 10000;
+                private final long startTime = System.currentTimeMillis();
+                private long previousTime = 0;
+                private long transactions = 0;
+                private long dtransactions = 0;
 
                 @Override
                 public void notify(Block block) {

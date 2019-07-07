@@ -91,7 +91,6 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         }
 
 
-
         return response;
 
     }

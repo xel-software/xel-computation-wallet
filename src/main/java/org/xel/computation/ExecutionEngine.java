@@ -14,7 +14,7 @@ public class ExecutionEngine {
 
     private static final Properties defaultProperties = new Properties();
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    static boolean dda = getBooleanProperty("nxt.dump_pow_info");
+    static boolean dda = Nxt.getBooleanProperty("nxt.dump_pow_info");
 
     public static byte[] getMaximumTargetForTesting() {
         byte[] target = new byte[16];
@@ -44,19 +44,6 @@ public class ExecutionEngine {
     static{
         System.out.println(System.getProperty("java.class.path"));
         loadProperties(defaultProperties,NXT_DEFAULT_TESTVM_PROPERTIES,true);
-    }
-
-    public static Boolean getBooleanProperty(String name) {
-        String value = defaultProperties.getProperty(name);
-        if (Boolean.TRUE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"true\"");
-            return true;
-        } else if (Boolean.FALSE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"false\"");
-            return false;
-        }
-        Logger.logMessage(name + " not defined, assuming false");
-        return false;
     }
 
     public static String getStringProperty(String name) {

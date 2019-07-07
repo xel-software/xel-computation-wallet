@@ -58,7 +58,7 @@ public class RedeemTest extends AbstractForgingTest {
 
     @Before
     public void init() {
-        if(!isNxtInitted && !Nxt.isInitialized()) {
+        if(!isNxtInitted /*&& !Nxt.isInitialized()*/) {
             Properties properties = AbstractForgingTest.newTestProperties();
             properties.setProperty("nxt.disableGenerateBlocksThread", "false");
             properties.setProperty("nxt.enableFakeForging", "true");

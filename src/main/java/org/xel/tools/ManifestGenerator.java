@@ -36,10 +36,10 @@ public class ManifestGenerator {
 
     public static void main(String[] args) {
         ManifestGenerator manifestGenerator = new ManifestGenerator();
-        manifestGenerator.generate("./resource/elastic.manifest.mf", Nxt.class.getCanonicalName(), "./lib");
+        manifestGenerator.generate("./resource/xel.manifest.mf", Nxt.class.getCanonicalName(), "./lib");
         String serviceClassName = NxtService_ServiceManagement.class.getCanonicalName();
         serviceClassName = serviceClassName.substring(0, serviceClassName.length() - "_ServiceManagement".length());
-        manifestGenerator.generate("./resource/elasticservice.manifest.mf", serviceClassName, "./lib");
+        manifestGenerator.generate("./resource/xelservice.manifest.mf", serviceClassName, "./lib");
     }
 
     private void generate(String fileName, String className, String ... directories) {
@@ -58,7 +58,6 @@ public class ManifestGenerator {
             classpath.append(dirListing.getClasspath());
         }
         classpath.append("conf/");
-        classpath.append("conf_user/");
         manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath.toString());
         try {
             manifest.write(Files.newOutputStream(Paths.get(fileName), StandardOpenOption.CREATE));

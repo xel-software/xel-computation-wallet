@@ -523,50 +523,57 @@ var NRS = (function (NRS, $, undefined) {
 		}
 	};
 
-	NRS.formatTimestampTime = function (timestamp) {
-            var locale = NRS.getLocale();
-            var date = new Date(NRS.fromEpochTime(timestamp))
+    NRS.formatTimestampTime = function (timestamp, date_only, isAbsoluteTime) {
+        var locale = NRS.getLocale();
+        var date;
+        if (typeof timestamp == "object") {
+            date = timestamp;
+        } else if (isAbsoluteTime) {
+            date = new Date(timestamp);
+        } else {
+            date = new Date(NRS.fromEpochTime(timestamp));
+        }
 
-    		if (!isNaN(date) && typeof(date.getFullYear) == 'function') {
-    			var d = date.getDate();
-    			var dd = d < 10 ? '0' + d : d;
-    			var M = date.getMonth() + 1;
-    			var MM = M < 10 ? '0' + M : M;
-    			var yyyy = date.getFullYear();
-                var yy = String(yyyy).substring(2);
+        if (!isNaN(date) && typeof(date.getFullYear) == 'function') {
+            var d = date.getDate();
+            var dd = d < 10 ? '0' + d : d;
+            var M = date.getMonth() + 1;
+            var MM = M < 10 ? '0' + M : M;
+            var yyyy = date.getFullYear();
+            var yy = String(yyyy).substring(2);
 
-                var res = "";
+            var res = '';
 
+            if (!date_only) {
+                var hours = date.getHours();
+                var originalHours = hours;
+                var minutes = date.getMinutes();
+                var seconds = date.getSeconds();
 
-                    var hours = date.getHours();
-                    var originalHours = hours;
-                    var minutes = date.getMinutes();
-                    var seconds = date.getSeconds();
-
-                    if (!NRS.settings || NRS.settings["24_hour_format"] == "0") {
-                        if (originalHours == 0) {
-                            hours += 12;
-                        } else if (originalHours >= 13 && originalHours <= 23) {
-                            hours -= 12;
-                        }
+                if (!NRS.settings || NRS.settings["24_hour_format"] == "0") {
+                    if (originalHours == 0) {
+                        hours += 12;
+                    } else if (originalHours >= 13 && originalHours <= 23) {
+                        hours -= 12;
                     }
-                    if (minutes < 10) {
-                        minutes = "0" + minutes;
-                    }
-                    if (seconds < 10) {
-                        seconds = "0" + seconds;
-                    }
-                    res += hours + ":" + minutes + ":" + seconds;
+                }
+                if (minutes < 10) {
+                    minutes = "0" + minutes;
+                }
+                if (seconds < 10) {
+                    seconds = "0" + seconds;
+                }
+                res += " " + hours + ":" + minutes + ":" + seconds;
 
-                    if (!NRS.settings || NRS.settings["24_hour_format"] == "0") {
-                        res += " " + (originalHours >= 12 ? "PM" : "AM");
-    				}
-
-    			return res;
-    		} else {
-    			return date.toLocaleString();
-    		}
-    	};
+                if (!NRS.settings || NRS.settings["24_hour_format"] == "0") {
+                    res += " " + (originalHours >= 12 ? "PM" : "AM");
+                }
+            }
+            return res;
+        } else {
+            return date.toLocaleString();
+        }
+    };
 
     NRS.getBlockHeightMoment = function(height) {
         if (!height || !NRS.lastBlockHeight || !NRS.averageBlockGenerationTime) {
@@ -586,8 +593,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.baseTargetPercent = function(block) {
         if (block) {
-            //INITIAL_BASE_TARGET = 153722867
-            return Math.round(block.baseTarget / 153722867 * 100)
+            return Math.round(block.baseTarget / NRS.constants.INITIAL_BASE_TARGET * 100)
         } else {
             return 0;
         }
@@ -674,8 +680,17 @@ var NRS = (function (NRS, $, undefined) {
     };
 
     NRS.convertNumericToRSAccountFormat = function (account) {
-		return converters.convertNumericToRSAccountFormat(account);
-	};
+        if (NRS.isRsAccount(account)) {
+            return String(account).escapeHTML();
+        } else {
+            var address = new NxtAddress();
+            if (address.set(account)) {
+                return address.toString().escapeHTML();
+            } else {
+                return "";
+            }
+        }
+    };
 
     NRS.getAccountLink = function (object, accountKey, accountRef, title, showAccountRS, clazz) {
         var accountRS;
@@ -792,10 +807,16 @@ var NRS = (function (NRS, $, undefined) {
 		if ($el.length) {
 			$el.empty().append(data);
 		} else {
-			$el = $("#" + NRS.currentPage + "_table");
-			$el.find("tbody").empty().append(data);
-            $el.find('[data-toggle="tooltip"]').tooltip();
-		}
+            try {
+                $el = $("#" + NRS.currentPage + "_table");
+                $el.find("tbody").empty().append(data);
+                $el.find('[data-toggle="tooltip"]').tooltip();
+            } catch (e) {
+                NRS.logException(e);
+                NRS.logConsole("Raw data: " + data);
+                $el.find("tbody").empty().append("<tr><td>Error processing table data: " + e.message + "</td></tr>");
+            }
+        }
 
 		NRS.dataLoadFinished($el);
 
@@ -855,7 +876,12 @@ var NRS = (function (NRS, $, undefined) {
 		}
 	};
 
-    NRS.createInfoTable = function (data, fixed) {
+    NRS.createInfoTable = function(data, fixed) {
+        var orderedData = {};
+        Object.keys(data).sort().forEach(function(key) {
+            orderedData[key] = data[key];
+        });
+        data = orderedData;
 		var rows = "";
 		for (var key in data) {
             if (!data.hasOwnProperty(key)) {
@@ -891,7 +917,7 @@ var NRS = (function (NRS, $, undefined) {
                     value = NRS.formatQuantity(value, 0);
                 }
             } else if (key == "price" || key == "total" || key == "amount" || key == "fee" || key == "refund" || key == "discount") {
-                value = NRS.formatAmount(new BigInteger(String(value))) + " XEL";
+                value = NRS.formatAmount(new BigInteger(String(value))) + " " + NRS.constants.COIN_SYMBOL;
             } else if (key == "sender" || key == "recipient" || key == "account" || key == "seller" || key == "buyer" || key == "lessee") {
                 value = "<a href='#' data-user='" + NRS.escapeRespStr(value) + "' class='show_account_modal_action'>" + NRS.getAccountTitle(value) + "</a>";
             } else if (key == "request_processing_time") { /* Skip from displaying request processing time */
@@ -922,9 +948,9 @@ var NRS = (function (NRS, $, undefined) {
         var locale = NRS.getLocale();
         var amount = NRS.formatAmount(strAmount, round).split(locale.decimal);
 		if (amount.length == 2) {
-            return amount[0] + "" + locale.decimal + amount[1] ;
+            return amount[0] + "<span style='font-size:12px'>" + locale.decimal + amount[1] + "</span>";
 		} else {
-            return amount[0]+ "" + locale.decimal + '0';
+            return amount[0];
 		}
 	};
 
@@ -1336,7 +1362,7 @@ var NRS = (function (NRS, $, undefined) {
 					case "No attached message found":
 						return $.t("error_no_attached_message");
 					case "recipient account does not have public key":
-						return $.t("error_recipient_no_public_key");
+						return $.t("error_recipient_no_public_key", { "symbol": NRS.constants.COIN_SYMBOL });
 					default:
 						return response.errorDescription;
 						break;
@@ -1364,7 +1390,7 @@ var NRS = (function (NRS, $, undefined) {
 			nameKey = nameKey.substring(1);
 		}
 
-		if ($.i18n.exists(nameKey)) {
+		if ($.i18n && $.i18n.exists(nameKey)) {
 			return $.t(nameKey).escapeHTML();
 		} else {
 			return nameKey.replace(/_/g, " ").escapeHTML();
@@ -1725,9 +1751,59 @@ var NRS = (function (NRS, $, undefined) {
         }
     };
 
+    NRS.isRsAccount = function(account) {
+        return NRS.isRsAccountImpl(account, NRS.constants.ACCOUNT_RS_MATCH ? NRS.constants.ACCOUNT_RS_MATCH : NRS.getRsAccountRegex("NXT"));
+    };
+
+    NRS.isRsAccountImpl = function(account, regex) {
+        return regex.test(account);
+    };
+
+    NRS.isNumericAccount = function(account) {
+        return NRS.isNumericAccountImpl(account, NRS.constants.ACCOUNT_NUMERIC_MATCH);
+    };
+
+    NRS.isNumericAccountImpl = function(account, regex) {
+        return regex.test(account);
+    };
+
+    NRS.getAccountMask = function(c) {
+        switch(c) {
+            case "*":
+                return NRS.constants.ACCOUNT_MASK_ASTERIX;
+            case "_":
+                return NRS.constants.ACCOUNT_MASK_UNDERSCORE;
+            default:
+                return NRS.constants.ACCOUNT_MASK_PREFIX ? NRS.constants.ACCOUNT_MASK_PREFIX : "NXT-";
+        }
+    };
+
+    NRS.printPaperWallet = function(passphrase) {
+        var $pageHeader = $("<h2 data-i18n='nxt_ardor_paper_wallet'>NXT and Ardor Paper Wallet</h2>");
+        var $passphraseHeader = $("<h3 data-i18n='passphrase'>Passphrase</h3>");
+        var $passphraseText = $("<div></div>");
+        $passphraseText.text(passphrase);
+        var passphraseImg = NRS.generateQRCode(null, passphrase, 2, 4);
+        $(passphraseImg).load(function() {
+            var account = NRS.getAccountId(passphrase, true);
+            var $accountHeader = $("<h3 data-i18n='account'>Account</h3>");
+            var $accountText = $("<div></div>");
+            $accountText.html(account);
+            var accountImg = NRS.generateQRCode(null, account, 2, 4);
+            $(accountImg).load(function() {
+                $("<iframe>", { name: "paperWalletFrame", class: "printFrame"}).appendTo("body").contents().find("body")
+                    .append($pageHeader).append($passphraseHeader).append($passphraseText).append(passphraseImg).append($accountHeader).append($accountText).append(accountImg);
+                window.frames['paperWalletFrame'].focus();
+                window.frames['paperWalletFrame'].print();
+                setTimeout(function () {
+                    $(".printFrame").remove();
+                }, 1000);
+            });
+        });
+    };
 
     return NRS;
-}(Object.assign(NRS || {}, isNode ? global.client : {}), jQuery));
+}(isNode ? client : NRS || {}, jQuery));
 
 if (isNode) {
     module.exports = NRS;

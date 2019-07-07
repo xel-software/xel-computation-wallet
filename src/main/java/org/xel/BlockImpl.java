@@ -41,9 +41,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
-import static org.xel.TransactionType.SUBTYPE_PAYMENT_REDEEM;
-import static org.xel.TransactionType.TYPE_PAYMENT;
-
 final class BlockImpl implements Block {
 
     private final int version;
@@ -61,11 +58,6 @@ final class BlockImpl implements Block {
     private byte[] blockSignature;
     private BigInteger cumulativeDifficulty = BigInteger.ZERO;
     private long baseTarget = Constants.INITIAL_BASE_TARGET;
-    private long powTarget = Long.MAX_VALUE / 10000;
-    private int powLastMass = 0;
-    private int powMass = 0;
-    private long targetLastMass = 0;
-    private long targetMass = 0;
     private volatile long nextBlockId;
     private int height = -1;
     private volatile long id;
@@ -73,6 +65,11 @@ final class BlockImpl implements Block {
     private volatile long generatorId;
     private volatile byte[] bytes = null;
 
+    private long powTarget = Long.MAX_VALUE / 10000;
+    private int powLastMass = 0;
+    private int powMass = 0;
+    private long targetLastMass = 0;
+    private long targetMass = 0;
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, String secretPhrase) {
@@ -98,7 +95,6 @@ final class BlockImpl implements Block {
         this.generationSignature = generationSignature;
         this.blockSignature = blockSignature;
         this.previousBlockHash = previousBlockHash;
-
         if (transactions != null) {
             this.blockTransactions = Collections.unmodifiableList(transactions);
         }
@@ -118,49 +114,41 @@ final class BlockImpl implements Block {
         return checksum;
     }
 
-
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
-              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long powTarget, int
-                      powLastMass, int powMass, long
-                      targetLastMass, long targetMass, long
-                      nextBlockId, int height, long id,
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
               List<TransactionImpl> blockTransactions) {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 null, generationSignature, blockSignature, previousBlockHash, null);
         this.cumulativeDifficulty = cumulativeDifficulty;
         this.baseTarget = baseTarget;
-        this.powTarget = powTarget;
-        this.powLastMass = powLastMass;
-        this.powMass = powMass;
-        this.targetLastMass = targetLastMass;
-        this.targetMass = targetMass;
         this.nextBlockId = nextBlockId;
         this.height = height;
         this.id = id;
         this.generatorId = generatorId;
         this.blockTransactions = blockTransactions;
     }
-
+    
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
-              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long
-                      nextBlockId, int height, long id,
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
+              long powTarget, int powLastMass, int powMass, long targetLastMass, long targetMass,
               List<TransactionImpl> blockTransactions) {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 null, generationSignature, blockSignature, previousBlockHash, null);
         this.cumulativeDifficulty = cumulativeDifficulty;
         this.baseTarget = baseTarget;
-        this.powTarget = powTarget;
-        this.powLastMass = powLastMass;
-        this.powMass = powMass;
-        this.targetLastMass = targetLastMass;
-        this.targetMass = targetMass;
         this.nextBlockId = nextBlockId;
         this.height = height;
         this.id = id;
         this.generatorId = generatorId;
         this.blockTransactions = blockTransactions;
+        
+        this.powTarget = powTarget;
+        this.powLastMass = powLastMass;
+        this.powMass = powMass;
+        this.targetLastMass = targetLastMass;
+        this.targetMass = targetMass;
     }
 
     @Override
@@ -246,11 +234,6 @@ final class BlockImpl implements Block {
     }
 
     @Override
-    public long getBaseTarget() {
-        return baseTarget;
-    }
-
-    @Override
     public long getPowTarget() {
         return powTarget;
     }
@@ -273,6 +256,11 @@ final class BlockImpl implements Block {
     @Override
     public long getTargetMass() {
         return targetMass;
+    }
+    
+    @Override
+    public long getBaseTarget() {
+        return baseTarget;
     }
 
     @Override
@@ -304,7 +292,7 @@ final class BlockImpl implements Block {
                 throw new IllegalStateException("Block is not signed yet");
             }
             byte[] hash = Crypto.sha256().digest(bytes());
-            BigInteger bigInteger = new BigInteger(1, new byte[]{hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
+            BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
             id = bigInteger.longValue();
             stringId = bigInteger.toString();
         }
@@ -332,12 +320,12 @@ final class BlockImpl implements Block {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof BlockImpl && this.getId() == ((BlockImpl) o).getId();
+        return o instanceof BlockImpl && this.getId() == ((BlockImpl)o).getId();
     }
 
     @Override
     public int hashCode() {
-        return (int) (getId() ^ (getId() >>> 32));
+        return (int)(getId() ^ (getId() >>> 32));
     }
 
     @Override
@@ -433,7 +421,7 @@ final class BlockImpl implements Block {
                 throw new NxtException.NotValidException("Invalid block signature");
             }
             return block;
-        } catch (NxtException.NotValidException | RuntimeException e) {
+        } catch (NxtException.NotValidException|RuntimeException e) {
             Logger.logDebugMessage("Failed to parse block: " + blockData.toJSONString());
             throw e;
         }
@@ -520,13 +508,12 @@ final class BlockImpl implements Block {
     private volatile boolean hasValidSignature = false;
 
     private boolean checkSignature() {
-        if (!hasValidSignature) {
+        if (! hasValidSignature) {
             byte[] data = Arrays.copyOf(bytes(), bytes.length - 64);
             hasValidSignature = blockSignature != null && Crypto.verify(blockSignature, data, getGeneratorPublicKey(), version >= 3);
         }
         return hasValidSignature;
     }
-
 
     boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
@@ -538,7 +525,7 @@ final class BlockImpl implements Block {
             }
 
             if(previousBlock.getHeight()<Constants.ALLOW_FAKE_FORGING_ON_REDEEM_UNTIL_BLOCK)
-                for (final Transaction t : this.blockTransactions) if (t.getType().getType() == TYPE_PAYMENT && t.getType().getSubtype() == SUBTYPE_PAYMENT_REDEEM) return true;
+                for (final Transaction t : this.blockTransactions) if (TransactionType.isZeroFee(t)) return true;
 
 
             if (version == 1 && !Crypto.verify(generationSignature, previousBlock.generationSignature, getGeneratorPublicKey(), false)) {
@@ -644,13 +631,13 @@ final class BlockImpl implements Block {
                 }
                 totalBackFees += backFees[i];
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
-                Logger.logDebugMessage("Back fees %f XEL to forger at height %d", ((double)backFees[i])/Constants.ONE_NXT, this.height - i - 1);
+                Logger.logDebugMessage("Back fees %f %s to forger at height %d", ((double)backFees[i])/Constants.ONE_NXT, Constants.COIN_SYMBOL, this.height - i - 1);
                 previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
                 previousGeneratorAccount.addToForgedBalanceNQT(backFees[i]);
             }
         }
         if (totalBackFees != 0) {
-            Logger.logDebugMessage("Fee reduced by %f XEL at height %d", ((double)totalBackFees)/Constants.ONE_NXT, this.height);
+            Logger.logDebugMessage("Fee reduced by %f %s at height %d", ((double)totalBackFees)/Constants.ONE_NXT, Constants.COIN_SYMBOL, this.height);
         }
         generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
         generatorAccount.addToForgedBalanceNQT(totalFeeNQT - totalBackFees);
@@ -719,7 +706,7 @@ final class BlockImpl implements Block {
         if (previousBlock.getHeight() < 2) { // Set to 2 here
             baseTarget = BigInteger.valueOf(prevBaseTarget)
                     .multiply(BigInteger.valueOf(this.timestamp - previousBlock.timestamp))
-                    .divide(BigInteger.valueOf(60)).longValue();
+                    .divide(BigInteger.valueOf(Constants.BLOCK_TIME)).longValue();
             if (baseTarget < 0 || baseTarget > Constants.MAX_BASE_TARGET) {
                 baseTarget = Constants.MAX_BASE_TARGET;
             }
@@ -739,14 +726,14 @@ final class BlockImpl implements Block {
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
             int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
-            if (blocktimeAverage > 60) {
-                baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
+            if (blocktimeAverage > Constants.BLOCK_TIME) {
+                baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / Constants.BLOCK_TIME;
             } else {
                 baseTarget = prevBaseTarget - prevBaseTarget * Constants.BASE_TARGET_GAMMA
-                        * (60 - Math.max(blocktimeAverage, Constants.MIN_BLOCKTIME_LIMIT)) / 6000;
+                        * (Constants.BLOCK_TIME - Math.max(blocktimeAverage, Constants.MIN_BLOCKTIME_LIMIT)) / (100 * Constants.BLOCK_TIME);
             }
-            if (baseTarget < 0 || baseTarget > Constants.MAX_BASE_TARGET_2) {
-                baseTarget = Constants.MAX_BASE_TARGET_2;
+            if (baseTarget < 0 || baseTarget > Constants.MAX_BASE_TARGET) {
+                baseTarget = Constants.MAX_BASE_TARGET;
             }
             if (baseTarget < Constants.MIN_BASE_TARGET) {
                 baseTarget = Constants.MIN_BASE_TARGET;

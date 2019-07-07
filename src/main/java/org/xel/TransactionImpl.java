@@ -277,10 +277,8 @@ final class TransactionImpl implements Transaction {
     private final int ecBlockHeight;
     private final long ecBlockId;
     private final byte version;
-
     private final int timestamp;
     private final int pseudo_creation_timestamp;
-
     private final byte[] signature;
     private final Attachment.AbstractAttachment attachment;
     private final Appendix.Message message;
@@ -613,7 +611,7 @@ final class TransactionImpl implements Transaction {
         // Heuristic timeout fix for "past timestamped redeem tx" - this will not always work reliably
         // (broadcast to new nodes will cause the timer to restart on these new nodes), but it's fine for REDEEM i guess
 
-        if(this.getType().getType() == TransactionType.TYPE_PAYMENT && this.getType().getSubtype() == TransactionType.SUBTYPE_PAYMENT_REDEEM)
+        if(TransactionType.isZeroFee(this))
             return pseudo_creation_timestamp + deadline*60;
         else
             return timestamp + deadline * 60;
@@ -793,7 +791,6 @@ final class TransactionImpl implements Transaction {
                 buffer.putInt(timestamp);
                 buffer.putShort(deadline);
                 buffer.put(getSenderPublicKey());
-
                 buffer.putLong(type.canHaveRecipient() ? recipientId : Genesis.CREATOR_ID);
                 if (useNQT()) {
                     buffer.putLong(amountNQT);
@@ -1335,7 +1332,6 @@ final class TransactionImpl implements Transaction {
         return this.height > Constants.NQT_BLOCK || Nxt.getBlockchain().getHeight() >= Constants.NQT_BLOCK;
     }
 
-
     private byte[] zeroSignature(byte[] data) {
         int start = signatureOffset();
         for (int i = start; i < start + 64; i++) {
@@ -1576,7 +1572,6 @@ final class TransactionImpl implements Transaction {
         }
         AccountRestrictions.checkTransaction(this, validatingAtFinish);
     }
-
 
     // returns false iff double spending
     boolean applyUnconfirmed() {

@@ -26,7 +26,6 @@ import org.xel.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -119,9 +118,18 @@ public final class APIServlet extends HttpServlet {
             return false;
         }
 
+        protected boolean isTextArea(String parameter) {
+            return false;
+        }
+
+        protected boolean isPassword(String parameter) {
+            return false;
+        }
+
     }
 
     private static final boolean enforcePost = Nxt.getBooleanProperty("nxt.apiServerEnforcePOST");
+    private static final boolean fixResponseContentType = Nxt.getBooleanProperty("nxt.apiFixResponseContentType");
     static final Map<String,APIRequestHandler> apiRequestHandlers;
     static final Map<String,APIRequestHandler> disabledRequestHandlers;
 
@@ -173,12 +181,12 @@ public final class APIServlet extends HttpServlet {
     static void initClass() {}
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         process(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         process(req, resp);
     }
 
@@ -187,7 +195,11 @@ public final class APIServlet extends HttpServlet {
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
-        resp.setContentType("text/plain; charset=UTF-8");
+        if (fixResponseContentType) {
+            resp.setContentType("application/json");
+        } else {
+            resp.setContentType("text/plain; charset=UTF-8");
+        }
 
         JSONStreamAware response = JSON.emptyJSON;
         long startTime = System.currentTimeMillis();

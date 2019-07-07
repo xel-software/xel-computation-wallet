@@ -19,7 +19,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" data-i18n="send_nxt">Send XEL</h4>
+                <h4 class="modal-title">
+                    <span data-i18n="send">Send</span> <span class="coin-symbol"></span>
+                </h4>
             </div>
             <div class="modal-body">
                 <form role="form" autocomplete="off">
@@ -31,7 +33,7 @@
                                 <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
                                 <div class="input-group">
                                     <input type="text" name="amountNXT" id="send_money_amount" step="any" min="0" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
-                                    <span class="input-group-addon">XEL</span>
+                                    <span class="input-group-addon coin-symbol"></span>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +57,7 @@
                 <div class="advanced_info"><a href="#" data-i18n="advanced">advanced</a></div>
 
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
-                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="send_nxt;[data-loading-text]submitting">Send XEL</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[data-loading-text]submitting">Submit</button>
             </div>
         </div>
     </div>
@@ -66,22 +68,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" data-i18n="nrs_info">Elastic Info</h4>
+                <h4 class="modal-title modal-title-info"></h4>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
-                    <li class="active" id="nrs_modal_state_nav" data-tab="state"><a href="#" data-i18n="nrs_state">Elastic State</a></li>
-                    <li data-tab="update"><a href="#" data-i18n="nrs_update">Elastic Update</a></li>
+                    <li class="active" id="nrs_modal_state_nav" data-tab="state"><a href="#" data-i18n="nrs_state">State</a></li>
+                    <li data-tab="update"><a href="#" data-i18n="nrs_update">Update</a></li>
                 </ul>
 
                 <div id="nrs_modal_update" class="nrs_modal_content" style="display:none">
                     <div id="nrs_update_explanation" class="nrs_message">
                         <span id="nrs_update_explanation_blockchain_sync" data-i18n="update_blockchain_downloading">The blockchain is still downloading, check again after it's up to date.</span>
                         <span id="nrs_update_explanation_wait" data-i18n="checking_for_updates">Checking for updates...</span>
-                        <span id="nrs_update_explanation_testnet" data-i18n="update_testnet">NRS cannot be updated whilst connected to the testnet.</span>
+                        <span id="nrs_update_explanation_testnet" data-i18n="update_testnet">Version cannot be updated whilst connected to the testnet.</span>
                         <span id="nrs_update_explanation_up_to_date" data-i18n="update_up_to_date">You have the latest release already. There is no need to update.</span>
                         <span id="nrs_update_explanation_new_release">
-                            <span data-i18n="update_available">A new Elastic release is available. It is recommended that you update.</span>
+                            <span data-i18n="update_available">A new release is available. It is recommended that you update.</span>
                             <br /><br />
                             <button type="button" class="btn btn-success ignore" onclick="NRS.downloadClientUpdate('release', 'zip')">
                                 <span data-i18n="download_nrs_zip">Zip file</span>
@@ -371,6 +373,12 @@
                                     <div id="account_details_modal_passphrase_qr_code"></div>
                                 </td>
                             </tr>
+                            <tr>
+                                <td style="font-weight: bold"><span data-i18n="paper_wallet">Paper Wallet</span>:</td>
+                                <td>
+                                    <button class="btn btn-default" id="account_details_modal_paper_wallet_link" disabled data-i18n="print">Print</button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                  </div>
@@ -421,7 +429,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" data-i18n="nxt_token_generation_validation">XEL Token Generation / Validation</h4>
+                <h4 class="modal-title" data-i18n="token_generation_validation">Token Generation / Validation</h4>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
@@ -461,7 +469,7 @@
             </div>
             <div class="modal-footer" style="margin-top:0;">
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
-                <button type="button" class="btn btn-primary " data-ignore="true" data-form="generate_token_form" id="generate_token_button" data-i18n="generate">Generate</button>
+                <button type="button" class="btn btn-primary" data-ignore="true" data-form="generate_token_form" id="generate_token_button" data-i18n="generate">Generate</button>
                 <button type="button" class="btn btn-primary" data-form="validate_token_form" id="validate_token_button" data-i18n="validate">Validate</button>
             </div>
         </div>
@@ -586,12 +594,42 @@
     </div>
 </div>
 
+<div class="modal fade modal-no-hide" id="passphrase_validation_modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="passphrase_validation">PASSPHRASE VALIDATION</h4>
+            </div>
+            <div class="modal-body">
+                <form autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="passphrae_validation_account" data-i18n="account">ACCOUNT</label>
+                        <input class="form-control" name="account" id="passphrae_validation_account" placeholder="Account" data-i18n="[placeholder]account" readonly value="" />
+                    </div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
+                    <div class="form-group">
+                        <label for="passphrae_validation_public_key" data-i18n="public_key">PUBLIC KEY</label>
+                        <input class="form-control" id="passphrae_validation_public_key" placeholder="Public Key" data-i18n="[placeholder]public_key" readonly value="" />
+                    </div>
+                    <input type="hidden" name="request_type" value="validatePassphrase" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-i18n="validate">Validate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade modal-no-hide" id="about_modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" data-i18n="about_nxt">About XEL</h4>
+                <h4 class="modal-title help-about"></h4>
             </div>
             <div class="modal-body">
                 <div>
@@ -606,7 +644,7 @@
                         the creators of open source blockchain solutions.<br />
                     </p>
                     <p>
-                        All functionality regarding the Elastic Network (including the modification of the original NRS) has been achieved by the wonderful XEL Community and the XEL Core Developers.<br />
+                        All functionality regarding the XEL Network (including the modification of the original NRS) has been achieved by the wonderful XEL Community and the XEL Core Developers.<br />
                     </p>
                 </div>
             </div>
@@ -631,6 +669,7 @@
                 <div class="tabbable">
                     <ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
                         <li class="active"><a href="#block_info_transactions_tab" data-toggle="tab" id="block_info_transactions_tab_link" data-i18n="transactions">Transactions</a></li>
+                        <li><a href="#block_info_executed_phased_tab" data-toggle="tab" data-i18n="executed_phased_transactions">Executed Phased Transactions</a></li>
                         <li><a href="#block_info_details_tab" data-toggle="tab" data-i18n="block_details">Block Details</a></li>
                     </ul>
                     <div class="tab-content">
@@ -638,6 +677,7 @@
                             <table class="table table-striped" id="block_info_transactions_table" style="margin-bottom:0">
                                 <thead>
                                 <tr>
+                                    <th data-i18n="index">Index</th>
                                     <th data-i18n="date">Date</th>
                                     <th data-i18n="type">Type</th>
                                     <th data-i18n="amount">Amount</th>
@@ -651,6 +691,22 @@
                                 </tbody>
                             </table>
                             <div id="block_info_transactions_none" style="display:none;" data-i18n="no_transactions_in_block">No transactions in this block.</div>
+                        </div>
+                        <div class="tab-pane" id="block_info_executed_phased_tab" style="max-height:350px;overflow:auto;">
+                            <table class="table table-striped" id="block_info_executed_phased_table" style="margin-bottom:0">
+                                <thead>
+                                <tr>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="type">Type</th>
+                                    <th data-i18n="height">Height</th>
+                                    <th data-i18n="event">Event</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                            <div id="block_info_executed_phased_none" style="display:none;" data-i18n="no_executed_phased_in_block">No executed phased transactions in this block.</div>
                         </div>
                         <div class="tab-pane" id="block_info_details_tab" style="max-height:350px;overflow:auto;">
                             <table class="table table-striped" id="block_info_details_table" style="margin-bottom:0">
@@ -718,7 +774,6 @@
                 <ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
                     <li class="active" id="user_info_transactions" data-tab="transactions"><a href="#" data-i18n="transactions">Transactions</a></li>
                     <li id="user_info_ledger" data-tab="ledger"><a href="#" data-i18n="ledger">Ledger</a></li>
-
                     <li id="user_info_description" data-tab="description"><a href="#" data-i18n="description">Description</a></li>
                     <li id="user_info_actions" data-tab="actions"><a href="#" data-i18n="actions">Actions</a></li>
                 </ul>
@@ -856,7 +911,9 @@
                 <div class="user_info_modal_content data-never-loading" id="user_info_modal_actions" style="display:none;">
                     <div class="row">
                         <div class="col-xs-6 col-md-6" style="margin-left:auto;margin-right:auto;float:none;">
-                            <button type="button" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#send_money_modal" data-account="" data-i18n="send_nxt">Send XEL</button>
+                            <button type="button" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#send_money_modal" data-account="">
+                                <span data-i18n="send">Send</span> <span class="coin-symbol"></span>
+                            </button>
                             <button type="button" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#send_message_modal" data-account="" data-i18n="send_a_message">Send a Message</button>
                             <button type="button" id="user_info_modal_add_as_contact" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#add_contact_modal" data-account="" data-i18n="add_as_contact">Add as Contact</button>
                         </div>

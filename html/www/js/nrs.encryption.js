@@ -22,14 +22,12 @@ var NRS = (function (NRS, $) {
 	var _decryptionPassword;
 	var _decryptedTransactions;
 	var _encryptedNote;
-	var _sharedKeys;
 
 	NRS.resetEncryptionState = function () {
 		_password = null;
 		_decryptionPassword = null;
 		_decryptedTransactions = {};
 		_encryptedNote = null;
-		_sharedKeys = {};
 	};
 	NRS.resetEncryptionState();
 
@@ -45,25 +43,21 @@ var NRS = (function (NRS, $) {
 		return NRS.getPublicKey(converters.stringToHexString(secretPhrase));
 	};
 
-	NRS.getPublicKey = function(secretPhrase, isAccountNumber) {
-		if (isAccountNumber) {
-			var accountNumber = secretPhrase;
-			var publicKey = "";
-
-			//synchronous!
+	NRS.getPublicKey = function(id, isAccountId) {
+		if (isAccountId) {
+            var publicKey = "";
 			NRS.sendRequest("getAccountPublicKey", {
-				"account": accountNumber
+				"account": id
 			}, function(response) {
 				if (!response.publicKey) {
 					throw $.t("error_no_public_key");
 				} else {
 					publicKey = response.publicKey;
 				}
-			}, { isAsync: false });
-
-			return publicKey;
+			}, { isAsync: false }); //synchronous!
+            return publicKey;
 		} else {
-			var secretPhraseBytes = converters.hexStringToByteArray(secretPhrase);
+			var secretPhraseBytes = converters.hexStringToByteArray(id);
 			var digest = simpleHash(secretPhraseBytes);
 			return converters.byteArrayToHexString(curve25519.keygen(digest).p);
 		}
@@ -74,28 +68,18 @@ var NRS = (function (NRS, $) {
         return converters.shortArrayToHexString(curve25519_clamp(converters.byteArrayToShortArray(bytes)));
 	};
 
-	NRS.getAccountId = function(secretPhrase) {
-		return NRS.getAccountIdFromPublicKey(NRS.getPublicKey(converters.stringToHexString(secretPhrase)));
+	NRS.getAccountId = function(secretPhrase, isRsFormat) {
+		return NRS.getAccountIdFromPublicKey(NRS.getPublicKey(converters.stringToHexString(secretPhrase)), isRsFormat);
 	};
 
-	NRS.getAccountIdFromPublicKey = function(publicKey, RSFormat) {
+	NRS.getAccountIdFromPublicKey = function(publicKey, isRsFormat) {
 		var hex = converters.hexStringToByteArray(publicKey);
 		var account = simpleHash(hex);
-
 		account = converters.byteArrayToHexString(account);
-
 		var slice = (converters.hexStringToByteArray(account)).slice(0, 8);
-
 		var accountId = byteArrayToBigInteger(slice).toString();
-
-		if (RSFormat) {
-			var address = new NxtAddress();
-
-			if (address.set(accountId)) {
-				return address.toString();
-			} else {
-				return "";
-			}
+		if (isRsFormat) {
+			return NRS.convertNumericToRSAccountFormat(accountId);
 		} else {
 			return accountId;
 		}
@@ -215,43 +199,6 @@ var NRS = (function (NRS, $) {
 					"errorCode": 3
 				};
 			}
-		}
-	};
-
-	NRS.getSharedKeyWithAccount = function(account) {
-		try {
-			if (account in _sharedKeys) {
-				return _sharedKeys[account];
-			}
-
-			var secretPhrase;
-
-			if (NRS.rememberPassword) {
-				secretPhrase = _password;
-			} else if (_decryptionPassword) {
-				secretPhrase = _decryptionPassword;
-			} else {
-				throw {
-					"message": $.t("error_passphrase_required"),
-					"errorCode": 3
-				};
-			}
-
-			var privateKey = converters.hexStringToByteArray(NRS.getPrivateKey(secretPhrase));
-
-			var publicKey = converters.hexStringToByteArray(NRS.getPublicKey(account, true));
-
-			var sharedKey = getSharedSecret(privateKey, publicKey);
-
-			var sharedKeys = Object.keys(_sharedKeys);
-
-			if (sharedKeys.length > 50) {
-				delete _sharedKeys[sharedKeys[0]];
-			}
-
-			_sharedKeys[account] = sharedKey;
-		} catch (err) {
-			throw err;
 		}
 	};
 
@@ -517,7 +464,6 @@ var NRS = (function (NRS, $) {
 		}
 
 		var rememberPassword = $form.find("input[name=rememberPassword]").is(":checked");
-		var otherAccount = _encryptedNote.account;
 		var output = "";
 		var decryptionError = false;
 		var decryptedFields = {};
@@ -529,8 +475,9 @@ var NRS = (function (NRS, $) {
 			var nonce = "";
 			var nonceField = (typeof title != "string" ? title.nonce : key + "Nonce");
 			if (key == "encryptedMessage" || key == "encryptToSelfMessage") {
+                var otherAccount = _encryptedNote.account;
 			    if (key == "encryptToSelfMessage") {
-					otherAccount=accountId;
+					otherAccount = accountId;
 				}
 				encrypted = _encryptedNote.transaction.attachment[key].data;
 				nonce = _encryptedNote.transaction.attachment[key].nonce;
@@ -634,12 +581,12 @@ var NRS = (function (NRS, $) {
 						options.nonce = message.attachment.encryptedMessage.nonce;
 						options.account = otherUser;
                     }
-                    //if (_encryptedNote.transaction.goodsIsText) {
-                    //    options.isText = message.goodsIsText;
-                    //} else {
+                    if (_encryptedNote.transaction.goodsIsText) {
+                        options.isText = message.goodsIsText;
+                    } else {
                         options.isText = message.attachment.encryptedMessage.isText;
                         options.isCompressed = message.attachment.encryptedMessage.isCompressed;
-                    //}
+                    }
                     var decoded = NRS.decryptNote(message.attachment.encryptedMessage.data, options, password);
 					_decryptedTransactions[message.transaction] = {
 						encryptedMessage: decoded
@@ -888,7 +835,7 @@ var NRS = (function (NRS, $) {
     };
 
     return NRS;
-}(Object.assign(NRS || {}, isNode ? global.client : {}), jQuery));
+}(isNode ? client : NRS || {}, jQuery));
 
 if (isNode) {
     module.exports = NRS;

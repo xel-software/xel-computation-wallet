@@ -19,7 +19,6 @@ package org.xel;
 import org.xel.db.DbIterator;
 import org.xel.util.Filter;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;

@@ -16,11 +16,7 @@
 
 package org.xel.http;
 
-import org.xel.Constants;
-import org.xel.Genesis;
-import org.xel.PhasingPoll;
-import org.xel.TransactionType;
-import org.xel.VoteWeighting;
+import org.xel.*;
 import org.xel.crypto.HashFunction;
 import org.xel.peer.Peer;
 import org.xel.util.JSON;
@@ -44,9 +40,12 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
         static {
             try {
                 JSONObject response = new JSONObject();
-                response.put("genesisBlockId", Long.toUnsignedString(Genesis.GENESIS_BLOCK_ID));
+                response.put("coinSymbol", Constants.COIN_SYMBOL);
+                response.put("accountPrefix", Constants.ACCOUNT_PREFIX);
+                response.put("projectName", Constants.PROJECT_NAME);
+                response.put("genesisBlockId", Long.toUnsignedString(Nxt.getBlockchainProcessor().getGenesisBlockId()));
                 response.put("genesisAccountId", Long.toUnsignedString(Genesis.CREATOR_ID));
-                response.put("epochBeginning", Constants.EPOCH_BEGINNING);
+                response.put("epochBeginning", Genesis.EPOCH_BEGINNING);
                 response.put("maxBlockPayloadLength", Constants.MAX_PAYLOAD_LENGTH);
                 response.put("maxArbitraryMessageLength", Constants.MAX_ARBITRARY_MESSAGE_LENGTH);
                 response.put("maxPrunableMessageLength", Constants.MAX_PRUNABLE_MESSAGE_LENGTH);
@@ -58,10 +57,15 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                     JSONObject typeJSON = new JSONObject();
                     JSONObject subtypesJSON = new JSONObject();
                     for (int subtype = 0; ; subtype++) {
-                        TransactionType transactionType = TransactionType.findTransactionType((byte) type, (byte) subtype);
+                        TransactionType transactionType;
+                        try {
+                            transactionType = TransactionType.findTransactionType((byte) type, (byte) subtype);
+                        } catch (IllegalArgumentException ignore) {
+                            continue;
+                        }
                         if (transactionType == null) {
                             if (subtype == 0) {
-                               break outer;
+                                break outer;
                             } else {
                                 if(subtype>=10)
                                     break;
@@ -75,8 +79,8 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                         subtypeJSON.put("mustHaveRecipient", transactionType.mustHaveRecipient());
                         subtypeJSON.put("isPhasingSafe", transactionType.isPhasingSafe());
                         subtypeJSON.put("isPhasable", transactionType.isPhasable());
-                        subtypeJSON.put("type", transactionType.getType());
-                        subtypeJSON.put("subtype", transactionType.getSubtype());
+                        subtypeJSON.put("type", type);
+                        subtypeJSON.put("subtype", subtype);
                         subtypesJSON.put(subtype, subtypeJSON);
                         transactionSubTypesJSON.put(transactionType.getName(), subtypeJSON);
                     }
@@ -156,6 +160,8 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                 JSONArray notForwardedRequests = new JSONArray();
                 notForwardedRequests.addAll(APIProxy.NOT_FORWARDED_REQUESTS);
                 response.put("proxyNotForwardedRequests", notForwardedRequests);
+
+                response.put("initialBaseTarget", Long.toUnsignedString(Constants.INITIAL_BASE_TARGET));
 
                 CONSTANTS = JSON.prepare(response);
             } catch (Exception e) {

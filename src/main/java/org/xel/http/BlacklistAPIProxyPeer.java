@@ -16,7 +16,6 @@
 
 package org.xel.http;
 
-import org.xel.NxtException;
 import org.xel.peer.Peer;
 import org.xel.peer.Peers;
 import org.xel.util.Convert;
@@ -37,7 +36,7 @@ public class BlacklistAPIProxyPeer extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
+    protected JSONStreamAware processRequest(HttpServletRequest request) {
         String peerAddress = Convert.emptyToNull(request.getParameter("peer"));
         if (peerAddress == null) {
             return MISSING_PEER;
@@ -47,8 +46,7 @@ public class BlacklistAPIProxyPeer extends APIServlet.APIRequestHandler {
         if (peer == null) {
             return UNKNOWN_PEER;
         } else {
-            APIProxy.getInstance().blacklistHost(peer.getHost());
-            response.put("done", true);
+            response.put("done", APIProxy.getInstance().blacklistHost(peer.getHost()));
         }
 
         return response;

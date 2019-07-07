@@ -31,9 +31,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.xel.TransactionType.SUBTYPE_PAYMENT_REDEEM;
-import static org.xel.TransactionType.TYPE_PAYMENT;
-
 public final class TemporaryComputationTransactionProcessorImpl implements TransactionProcessor {
 
     private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("nxt.enableTransactionRebroadcasting");
@@ -412,7 +409,7 @@ public final class TemporaryComputationTransactionProcessorImpl implements Trans
             }
             transaction.validateComputational();
             UnconfirmedTransaction unconfirmedTransaction = new UnconfirmedTransaction((TransactionImpl) transaction, System.currentTimeMillis());
-            boolean broadcastLater = TemporaryComputationBlockchainProcessorImpl.getInstance().isProcessingBlock();
+            boolean broadcastLater = Nxt.getTemporaryComputationBlockchainProcessor().isProcessingBlock();
             if (broadcastLater) {
                 waitingTransactions.add(unconfirmedTransaction);
                 broadcastedTransactions.add((TransactionImpl) transaction);
@@ -663,7 +660,7 @@ public final class TemporaryComputationTransactionProcessorImpl implements Trans
     private void processTransaction(UnconfirmedTransaction unconfirmedTransaction) throws NxtException.ValidationException {
         TransactionImpl transaction = unconfirmedTransaction.getTransaction();
         int curTime = Nxt.getEpochTime();
-        if ( (!(unconfirmedTransaction.getType().getType() == TYPE_PAYMENT && unconfirmedTransaction.getType().getSubtype() == SUBTYPE_PAYMENT_REDEEM) && transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) || transaction.getExpiration(true) < curTime) {
+        if ( (!TransactionType.isZeroFee(unconfirmedTransaction) && transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) || transaction.getExpiration(true) < curTime) {
             throw new NxtException.NotCurrentlyValidException("Invalid transaction timestamp");
         }
         if (transaction.getVersion() < 1) {

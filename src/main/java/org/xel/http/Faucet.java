@@ -19,7 +19,6 @@ package org.xel.http;
 import com.google.gson.JsonObject;
 import org.json.simple.JSONStreamAware;
 import org.xel.*;
-import org.xel.computation.Pair;
 import org.xel.crypto.Crypto;
 
 import javax.servlet.http.HttpServletRequest;

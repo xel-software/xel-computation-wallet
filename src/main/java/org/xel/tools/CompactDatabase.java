@@ -32,11 +32,11 @@ import java.sql.Statement;
  *
  * To run the database compact tool on Linux or Mac:
  *
- *   java -cp "classes:lib/*:conf" CompactDatabase
+ *   java -cp "classes:lib/*:conf" nxt.tools.CompactDatabase
  *
  * To run the database compact tool on Windows:
  *
- *   java -cp "classes;lib/*;conf" -Dnxt.runtime.mode=desktop CompactDatabase
+ *   java -cp "classes;lib/*;conf" -Dnxt.runtime.mode=desktop nxt.tools.CompactDatabase
  */
 public class CompactDatabase {
 

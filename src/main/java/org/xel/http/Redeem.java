@@ -16,12 +16,12 @@
 package org.xel.http;
 
 import javax.servlet.http.HttpServletRequest;
-import org.xel.*;
+
 import org.json.simple.JSONStreamAware;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import org.xel.Account;
+import org.xel.Attachment;
+import org.xel.Genesis;
+import org.xel.NxtException;
 
 public final class Redeem extends CreateTransaction {
 
@@ -56,6 +56,7 @@ public final class Redeem extends CreateTransaction {
     }
 
 
+    // TODO: Not required for redeem to help initial bootstrap - Consider removing after the chain is a few blocks long!
     @Override
     protected boolean requireBlockchain() {
         return false;

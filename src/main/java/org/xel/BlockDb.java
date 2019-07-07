@@ -201,8 +201,8 @@ final class BlockDb {
     static Set<Long> getBlockGenerators(int startHeight) {
         Set<Long> generators = new HashSet<>();
         try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement(
-                     "SELECT generator_id, COUNT(generator_id) AS count FROM block WHERE height >= ? GROUP BY generator_id")) {
+                PreparedStatement pstmt = con.prepareStatement(
+                        "SELECT generator_id, COUNT(generator_id) AS count FROM block WHERE height >= ? GROUP BY generator_id")) {
             pstmt.setInt(1, startHeight);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -234,6 +234,9 @@ final class BlockDb {
             BigInteger cumulativeDifficulty = new BigInteger(rs.getBytes("cumulative_difficulty"));
             long baseTarget = rs.getLong("base_target");
             long nextBlockId = rs.getLong("next_block_id");
+            if (nextBlockId == 0 && !rs.wasNull()) {
+                throw new IllegalStateException("Attempting to load invalid block");
+            }
             int height = rs.getInt("height");
             byte[] generationSignature = rs.getBytes("generation_signature");
             byte[] blockSignature = rs.getBytes("block_signature");
@@ -334,11 +337,11 @@ final class BlockDb {
                 try (ResultSet rs = pstmtSelect.executeQuery()) {
                     Db.db.commitTransaction();
                     while (rs.next()) {
-                        pstmtDelete.setLong(1, rs.getLong("db_id"));
-                        pstmtDelete.executeUpdate();
+        	            pstmtDelete.setLong(1, rs.getLong("db_id"));
+            	        pstmtDelete.executeUpdate();
                         Db.db.commitTransaction();
                     }
-                }
+	            }
                 BlockImpl lastBlock = findLastBlock();
                 lastBlock.setNextBlockId(0);
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = NULL WHERE id = ?")) {
@@ -380,11 +383,9 @@ final class BlockDb {
                 stmt.executeUpdate("TRUNCATE TABLE transaction");
                 stmt.executeUpdate("TRUNCATE TABLE block");
                 BlockchainProcessorImpl.getInstance().getDerivedTables().forEach(table -> {
-                    if (table.isPersistent()) {
-                        try {
-                            stmt.executeUpdate("TRUNCATE TABLE " + table.toString());
-                        } catch (SQLException ignore) {}
-                    }
+                    try {
+                        stmt.executeUpdate("TRUNCATE TABLE " + table.toString());
+                    } catch (SQLException ignore) {}
                 });
                 stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
                 Db.db.commitTransaction();

@@ -33,7 +33,6 @@ import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -68,7 +67,7 @@ public final class PeerServlet extends WebSocketServlet {
         map.put("processBlock", ProcessBlock.instance);
         map.put("processTransactions", ProcessTransactions.instance);
 
-        if(Nxt.getBooleanProperty("nxt.enableComputationBlockchainRedirector") || Nxt.getBooleanProperty("nxt.enableComputationEngine")){
+        if(Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)){
             map.put("getCumulativeDifficultyComputation", GetCumulativeDifficultyComputation.instance);
             map.put("getMilestoneBlockIdsComputation", GetMilestoneBlockIdsComputation.instance);
             map.put("getNextBlockIdsComputation", GetNextBlockIdsComputation.instance);
@@ -157,11 +156,10 @@ public final class PeerServlet extends WebSocketServlet {
      *
      * @param   req                 HTTP request
      * @param   resp                HTTP response
-     * @throws  ServletException    Servlet processing error
      * @throws  IOException         I/O error
      */
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JSONStreamAware jsonResponse;
         //
         // Process the peer request

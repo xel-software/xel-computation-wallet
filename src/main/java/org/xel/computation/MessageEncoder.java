@@ -43,7 +43,7 @@ public class MessageEncoder {
     static byte[] MAGIC_INTERMEDIATE = {(byte)0xef, (byte)0xbe, (byte)0xad, (byte)0xde, (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef};
 
 
-    public static boolean useComputationEngine = Nxt.getBooleanProperty("nxt.enableComputationEngine");
+    public static boolean useComputationEngine = Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true);
     public static Map<Long, Integer> stupidLimiterBty = new HashMap<Long, Integer>();
     public static Map<Long, Integer> stupidLimiterPow = new HashMap<Long, Integer>();
 
@@ -296,13 +296,13 @@ public class MessageEncoder {
 
 
     public static void init(){
-        if(Nxt.getBooleanProperty("nxt.enableComputationEngine")) {
+
+        if(Nxt.getBooleanProperty("nxt.enableComputationEngine", false, true)) {
             Nxt.getBlockchainProcessor().addListener(block -> {
                 GetLastBlockId.lastBlockId = block.getId();
                 paymentProcessor(block);
-            }, BlockchainProcessorImpl.Event.AFTER_BLOCK_APPLY);
-        }
-        if(Nxt.getBooleanProperty("nxt.enableComputationEngine")) {
+            }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+
             Nxt.getTemporaryComputationBlockchainProcessor().addListener(block -> {
                 GetLastBlockId.lastBlockIdComp = block.getId();
                 processBlockInternal(block);

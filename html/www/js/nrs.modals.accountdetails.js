@@ -26,11 +26,15 @@ var NRS = (function(NRS, $, undefined) {
         if (_password) {
             $("#account_details_modal_account_display").show();
             $("#account_details_modal_passphrase_display").show();
+            if (NRS.isWindowPrintSupported()) {
+                $("#account_details_modal_paper_wallet_link").prop("disabled", false);
+            }
         } else {
             NRS.generateQRCode("#account_details_modal_account_qr_code", NRS.accountRS);
             $("#account_details_modal_account_display").hide();
             $("#account_details_modal_passphrase_display").hide();
-            $("#account_details_modal_passphrase_qr_code").html($.t("passphrase_not_specified"));
+            $("#account_details_modal_passphrase_qr_code").html($.t("passphrase_not_available"));
+            $("#account_details_modal_paper_wallet_na").html($.t("passphrase_not_available"));
         }
 		$("#account_details_modal_balance").show();
 
@@ -42,16 +46,16 @@ var NRS = (function(NRS, $, undefined) {
 			accountBalanceWarning.hide();
             var accountBalancePublicKey = $("#account_balance_public_key");
             if (NRS.accountInfo.errorCode && NRS.accountInfo.errorCode == 5) {
-				$("#account_balance_balance, #account_balance_unconfirmed_balance, #account_balance_effective_balance, #account_balance_guaranteed_balance, #account_balance_forged_balance").html("0 XEL");
+				$("#account_balance_balance, #account_balance_unconfirmed_balance, #account_balance_effective_balance, #account_balance_guaranteed_balance, #account_balance_forged_balance").html("0 " + NRS.constants.COIN_SYMBOL);
 				accountBalancePublicKey.html(NRS.escapeRespStr(NRS.publicKey));
 				$("#account_balance_account_rs").html(NRS.getAccountLink(NRS, "account", undefined, undefined, true));
 				$("#account_balance_account").html(NRS.escapeRespStr(NRS.account));
 			} else {
-				$("#account_balance_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.balanceNQT)) + " XEL");
-				$("#account_balance_unconfirmed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.unconfirmedBalanceNQT)) + " XEL");
-				$("#account_balance_effective_balance").html(NRS.formatAmount(NRS.accountInfo.effectiveBalanceNXT) + " XEL");
-				$("#account_balance_guaranteed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.guaranteedBalanceNQT)) + " XEL");
-				$("#account_balance_forged_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.forgedBalanceNQT)) + " XEL");
+				$("#account_balance_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.balanceNQT)) + " " + NRS.constants.COIN_SYMBOL);
+				$("#account_balance_unconfirmed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.unconfirmedBalanceNQT)) + " " + NRS.constants.COIN_SYMBOL);
+				$("#account_balance_effective_balance").html(NRS.formatAmount(NRS.accountInfo.effectiveBalanceNXT) + " " + NRS.constants.COIN_SYMBOL);
+				$("#account_balance_guaranteed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.guaranteedBalanceNQT)) + " " + NRS.constants.COIN_SYMBOL);
+				$("#account_balance_forged_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.forgedBalanceNQT)) + " " + NRS.constants.COIN_SYMBOL);
 
 				accountBalancePublicKey.html(NRS.escapeRespStr(NRS.accountInfo.publicKey));
 				$("#account_balance_account_rs").html(NRS.getAccountLink(NRS.accountInfo, "account", undefined, undefined, true));
@@ -73,7 +77,7 @@ var NRS = (function(NRS, $, undefined) {
 	});
 
 	function _showTab(tab){
-		var tabListItem = $("#account_details_modal li[data-tab=" + tab + "]");
+		var tabListItem = $("#account_details_modal").find("li[data-tab=" + tab + "]");
 		tabListItem.siblings().removeClass("active");
 		tabListItem.addClass("active");
 		$(".account_details_modal_content").hide();
@@ -104,7 +108,6 @@ var NRS = (function(NRS, $, undefined) {
         $("#account_details_modal_passphrase_display").show();
         $("#account_details_modal_passphrase_qr_code").empty();
         NRS.generateQRCode("#account_details_modal_account_qr_code", NRS.accountRS);
-        NRS.generateQRCode("#account_details_modal_account_qr_code", NRS.accountRS);
     });
 
     $("#account_details_modal_passphrase_display").on("click", function() {
@@ -112,6 +115,10 @@ var NRS = (function(NRS, $, undefined) {
         $("#account_details_modal_account_display").show();
         $("#account_details_modal_account_qr_code").empty();
         NRS.generateQRCode("#account_details_modal_passphrase_qr_code", _password);
+    });
+
+    $("#account_details_modal_paper_wallet_link").on("click", function() {
+		NRS.printPaperWallet(_password);
     });
 
     return NRS;

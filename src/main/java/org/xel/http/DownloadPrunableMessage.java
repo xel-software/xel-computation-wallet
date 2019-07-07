@@ -88,7 +88,7 @@ public final class DownloadPrunableMessage extends APIServlet.APIRequestHandler 
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
+    protected JSONStreamAware processRequest(HttpServletRequest request) {
         throw new UnsupportedOperationException();
     }
 }

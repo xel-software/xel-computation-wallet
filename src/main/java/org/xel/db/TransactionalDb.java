@@ -164,12 +164,7 @@ public class TransactionalDb extends BasicDb {
         if (!isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        Map<DbKey,Object> cacheMap = transactionCaches.get().get(tableName);
-        if (cacheMap == null) {
-            cacheMap = new HashMap<>();
-            transactionCaches.get().put(tableName, cacheMap);
-        }
-        return cacheMap;
+        return transactionCaches.get().computeIfAbsent(tableName, k -> new HashMap<>());
     }
 
     void clearCache(String tableName) {
@@ -210,7 +205,7 @@ public class TransactionalDb extends BasicDb {
         }
 
         @Override
-        public void setAutoCommit(boolean autoCommit) throws SQLException {
+        public void setAutoCommit(boolean autoCommit) {
             throw new UnsupportedOperationException("Use Db.beginTransaction() to start a new transaction");
         }
 

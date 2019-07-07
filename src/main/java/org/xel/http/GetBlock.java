@@ -50,7 +50,6 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
                 else
                     blockData = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(blockValue));
             } catch (RuntimeException e) {
-                e.printStackTrace();
                 return INCORRECT_BLOCK;
             }
         } else if (heightValue != null) {

@@ -28,12 +28,11 @@ var NRS = (function(NRS, $, undefined) {
 				NRS.login(false,account);
 			}
 		});
-
 		$("#login_password").keypress(function(e) {
 			if (e.which == '13') {
 				e.preventDefault();
 				var password = $("#login_password").val();
-				NRS.login(true,password);
+				NRS.login(true,password, { isPreventLoginToNewAccount: true });
 			}
 		});
 	};
@@ -50,26 +49,11 @@ var NRS = (function(NRS, $, undefined) {
 		$("#account_phrase_custom_panel, #account_phrase_generator_panel, #welcome_panel, #custom_passphrase_link").hide();
 		$("#account_phrase_custom_panel").find(":input:not(:button):not([type=submit])").val("");
 		$("#account_phrase_generator_panel").find(":input:not(:button):not([type=submit])").val("");
-		$("#login_username").mask("XEL-****-****-****-*****");
-        $("#login_account_other").mask("XEL-****-****-****-*****");
-        
-        var loginError = $("#login_error");
-		loginError.hide();
-
-        $("#login_username").keypress(function(e) {
-			if (e.which == '13') {
-				e.preventDefault();
-				console.log("please type in your password now.");
-				$("#login_password").focus();
-			}
-		});
-
+        $("#login_account_other").mask(NRS.getAccountMask("*"));
 		if (NRS.isMobileApp()) {
             $(".mobile-only").show();
         }
         $("#login_panel").show();
-        $("#phrase_warning_initial").show();
-        $('#login_account_container_other').hide();
 	};
 
 	NRS.showWelcomeScreen = function() {
@@ -79,6 +63,14 @@ var NRS = (function(NRS, $, undefined) {
         }
 		$("#welcome_panel").show();
 	};
+
+    NRS.createPassphraseToConfirmPassphrase = function() {
+        if ($("#confirm_passphrase_warning").is(":checked")) {
+            $('.step_2').hide();$('.step_3').show();
+        } else {
+            $("#confirm_passphrase_warning_container").css("background-color", "red");
+		}
+    };
 
 	NRS.registerUserDefinedAccount = function() {
 		$("#account_phrase_generator_panel, #login_panel, #welcome_panel, #custom_passphrase_link").hide();
@@ -97,6 +89,9 @@ var NRS = (function(NRS, $, undefined) {
 
 		var $loading = $("#account_phrase_generator_loading");
 		var $loaded = $("#account_phrase_generator_loaded");
+		if (NRS.isWindowPrintSupported()) {
+            $(".paper-wallet-link-container").show();
+		}
 
 		//noinspection JSUnresolvedVariable
 		if (window.crypto || window.msCrypto) {
@@ -114,7 +109,6 @@ var NRS = (function(NRS, $, undefined) {
 				$loaded.show();
 
 				PassPhraseGenerator.generatePassPhrase("#account_phrase_generator_panel");
-				
 			}).fail(function() {
 				alert($.t("error_word_list"));
 			});
@@ -123,9 +117,13 @@ var NRS = (function(NRS, $, undefined) {
 			$loaded.show();
 
 			PassPhraseGenerator.generatePassPhrase("#account_phrase_generator_panel");
-			
 		}
 	};
+
+    $("#generator_paper_wallet_link").click(function(e) {
+    	e.preventDefault();
+        NRS.printPaperWallet($("#account_phrase_generator_panel").find(".step_2 textarea").val());
+    });
 
 	NRS.verifyGeneratedPassphrase = function() {
 		var accountPhraseGeneratorPanel = $("#account_phrase_generator_panel");
@@ -181,7 +179,7 @@ var NRS = (function(NRS, $, undefined) {
 							.attr("href","#")
 							.attr("onClick","NRS.login(false,'"+account+"')")
 							.text(account))
-						.append($('<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>')
+						.append($('<button data-dismiss="modal" class="close" type="button">×</button>')
 							.attr("onClick","NRS.removeAccount('"+account+"')"))
 					);
 				}
@@ -212,10 +210,7 @@ var NRS = (function(NRS, $, undefined) {
 		NRS.accountInfo = {};
 
 		// Reset other functional state
-		$("#account_nr_assets, #account_assets_balance, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
-		$("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(0));
-
-
+		$("#account_balance, #account_balance_sidebar, #account_nr_assets, #account_assets_balance, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
 		$("#id_search").find("input[name=q]").val("");
 		NRS.resetAssetExchangeState();
 		NRS.resetPollsState();
@@ -235,7 +230,7 @@ var NRS = (function(NRS, $, undefined) {
 		NRS.goToPage("dashboard");
         NRS.login(false, account, function() {
             $.growl($.t("switched_to_account", { account: account }))
-        }, true);
+        }, { isAccountSwitch: true } );
 	};
 
     $("#loginButtons").find(".btn").click(function (e) {
@@ -291,46 +286,18 @@ var NRS = (function(NRS, $, undefined) {
         NRS.setStrItem("savedNxtAccounts", accountsStr + account + ";");
     }
 
-	NRS.updateAccountFieldDefered = function(){
-    	console.log("CURRENT PASSPH " + $("#login_username").val(""));
-    	if($('#login_password').val() == ""){
-    		$("#login_username").val("");
-    	}else{
-    		var mid = NRS.getAccountId($('#login_password').val());
-    		var addr = new NxtAddress();
-			addr.set(mid);
-    		$("#login_username").val(addr.toString());
-    	}
-    }
-
-    var tma=null;
-
-    NRS.updateAccountField = function(){
-    	if(tma != null)
-    		clearTimeout(tma);
-    	tma=setTimeout(NRS.updateAccountFieldDefered, 500);
-    }
-
-    NRS.goback = function() {
-    	$('#phrase_warning_initial').show();
-    	var loginError = $("#login_error");
-    	loginError.hide();
-    	var loginCheckPasswordLength = $("#login_check_password_length");
-    	loginCheckPasswordLength.val(1);
-    }
-
-  
-
     // id can be either account id or passphrase
-    NRS.login = function(isPassphraseLogin, id, callback, isAccountSwitch, isSavedPassphrase) {
-		console.log("login isPassphraseLogin = " + isPassphraseLogin +
-			", isAccountSwitch = " + isAccountSwitch +
-			", isSavedPassphrase = " + isSavedPassphrase);
+    NRS.login = function(isPassphraseLogin, id, callback, options) {
+        if (!options) {
+            options = {};
+        }
+        NRS.logConsole("login isPassphraseLogin = " + isPassphraseLogin +
+            ", isAccountSwitch = " + options.isAccountSwitch +
+            ", isSavedPassphrase = " + options.isSavedPassphrase +
+            ", isPreventLoginToNewAccount = " + options.isPreventLoginToNewAccount);
         NRS.spinner.spin($("#center")[0]);
-        console.log("Logging in");
-        if (isPassphraseLogin && !isSavedPassphrase){
+        if (isPassphraseLogin && !options.isSavedPassphrase){
 			var loginCheckPasswordLength = $("#login_check_password_length");
-			
 			if (!id.length) {
 				$.growl($.t("error_passphrase_required_login"), {
 					"type": "danger",
@@ -341,31 +308,20 @@ var NRS = (function(NRS, $, undefined) {
 			} else if (!NRS.isTestNet && id.length < 12 && loginCheckPasswordLength.val() == 1) {
 				loginCheckPasswordLength.val(0);
 				var loginError = $("#login_error");
-				var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button><button class="btn btn-success" onclick="NRS.login(1,$(\'#login_password\').val());return false;" data-i18n="risky">I Understand the Risk</button></div>';
-				loginError.find(".callout").html($.t("error_passphrase_login_length") + buttons);
+				loginError.find(".callout").html($.t("error_passphrase_login_length"));
 				loginError.show();
-				$("#phrase_warning_initial").hide();
-                NRS.spinner.stop();
-				return;
-			} else if (!NRS.isTestNet && id!=id.trim()) {
-				loginCheckPasswordLength.val(0);
-				var loginError = $("#login_error");
-				var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button><button class="btn btn-success" onclick="NRS.login(1,$(\'#login_password\').val());return false;" data-i18n="risky2">It Was Intentional</button></div>';
-				loginError.find(".callout").html($.t("error_whitespace_login_length") + buttons);
-				loginError.show();
-				$("#phrase_warning_initial").hide();
                 NRS.spinner.stop();
 				return;
 			}
 
-			
+			$("#login_password, #registration_password, #registration_password_repeat").val("");
 			loginCheckPasswordLength.val(1);
 		}
+
 		console.log("login calling getBlockchainStatus");
 		NRS.sendRequest("getBlockchainStatus", {}, function(response) {
 			if (response.errorCode) {
-				$("#login_password, #login_username, #registration_password, #registration_password_repeat").val("");
-			    NRS.connectionError(response.errorDescription);
+			    NRS.connectionError(response.errorDescription, response.errorCode);
                 NRS.spinner.stop();
 				console.log("getBlockchainStatus returned error");
 				return;
@@ -385,19 +341,6 @@ var NRS = (function(NRS, $, undefined) {
 			NRS.sendRequest(accountRequest, requestVariable, function(response, data) {
 				console.log(accountRequest + " response received");
 				if (!response.errorCode) {
-
-
-					if(!NRS.newlyCreatedAccount && isPassphraseLogin && $("#login_username").val() != NRS.escapeRespStr(response.accountRS)){
-						var loginError = $("#login_error");
-						var buttons='<div class="panel-body" style="padding-top:7px"><button class="btn btn-primary" onclick="NRS.goback()" data-i18n="goback">Go Back</button></div>';
-
-						loginError.find(".callout").html($.t("error_passphrase_login_mismatch")+buttons);
-						loginError.show();
-						$("#phrase_warning_initial").hide();
-		                NRS.spinner.stop();
-						return;
-					}
-
 					NRS.account = NRS.escapeRespStr(response.account);
 					NRS.accountRS = NRS.escapeRespStr(response.accountRS);
 					if (isPassphraseLogin) {
@@ -406,12 +349,29 @@ var NRS = (function(NRS, $, undefined) {
                         NRS.publicKey = NRS.escapeRespStr(response.publicKey);
                     }
 				}
-
-				$("#login_password, #login_username, #registration_password, #registration_password_repeat").val("");
-
-				if (!isPassphraseLogin && response.errorCode == 5) {
-					NRS.account = NRS.escapeRespStr(response.account);
-					NRS.accountRS = NRS.escapeRespStr(response.accountRS);
+                if (response.errorCode == 5) {
+                    if (isPassphraseLogin && options.isPreventLoginToNewAccount) {
+                        var accountRS = NRS.getAccountId(id, true);
+                        $.growl($.t("passphrase_login_to_new_account", { account: accountRS }), {
+                            "type": "danger", "delay": "10000"
+                        });
+                        NRS.spinner.stop();
+                        return;
+                    } else {
+                        NRS.account = NRS.escapeRespStr(response.account);
+                        NRS.accountRS = NRS.escapeRespStr(response.accountRS);
+                        if (isPassphraseLogin) {
+                            NRS.publicKey = NRS.getPublicKey(converters.stringToHexString(id));
+                        }
+                    }
+                }
+				if (response.errorCode == 19 || response.errorCode == 21) {
+                    $.growl($.t("light_client_connecting_to_network"), {
+                                    "type": "danger",
+                                    "offset": 10
+                                });
+                    NRS.spinner.stop();
+                    return;
 				}
 				if (!NRS.account) {
 					$.growl($.t("error_find_account_id", { accountRS: (data && data.account ? String(data.account).escapeHTML() : "") }), {
@@ -464,7 +424,11 @@ var NRS = (function(NRS, $, undefined) {
 					}
                     $("#sidebar_block_link").html(NRS.getBlockLink(NRS.lastBlockHeight));
 
-					
+					var canvas_title = CryptoJS.SHA1(String(NRS.account));
+					var cobj = document.getElementById("canvas_hash");
+					cobj.setAttribute("data-jdenticon-hash",canvas_title);
+					this.jdenticon();
+
 					var passwordNotice = "";
 
 					if (id.length < 35 && isPassphraseLogin) {
@@ -505,7 +469,7 @@ var NRS = (function(NRS, $, undefined) {
 								forgingIndicator.show();
 							});
 						}
-					}, isAccountSwitch);
+					}, options.isAccountSwitch);
 					NRS.initSidebarMenu();
 					NRS.unlock();
 
@@ -544,7 +508,7 @@ var NRS = (function(NRS, $, undefined) {
 					$('#dashboard_link').find('a').addClass("ignore").click();
 
 					var accounts;
-					if ($("#remember_me").is(":checked") || NRS.newlyCreatedAccount) {
+					if (rememberMe.is(":checked") || NRS.newlyCreatedAccount) {
 						rememberAccount(NRS.accountRS);
 					}
 
@@ -610,12 +574,12 @@ var NRS = (function(NRS, $, undefined) {
 			html = "";
 			html += "<div style='font-size:13px;padding:5px;'>";
 			html += "<p data-i18n='plugin_security_notice_full_access'>";
-			html += "Plugins are not sandboxed or restricted in any way and have full accesss to your client system including your XEL passphrase.";
+			html += "Plugins are not sandboxed or restricted in any way and have full accesss to your client system including your " + NRS.constants.COIN_SYMBOL + " passphrase.";
 			html += "</p>";
 			html += "<p data-i18n='plugin_security_notice_trusted_sources'>";
 			html += "Make sure to only run plugins downloaded from trusted sources, otherwise ";
-			html += "you can loose your XEL! In doubt don't run plugins with accounts ";
-			html += "used to store larger amounts of XEL now or in the future.";
+			html += "you can loose your " + NRS.constants.COIN_SYMBOL + "! In doubt don't run plugins with accounts ";
+			html += "used to store larger amounts of " + NRS.constants.COIN_SYMBOL + " now or in the future.";
 			html += "</p>";
 			html += "</div>";
 
@@ -652,7 +616,6 @@ var NRS = (function(NRS, $, undefined) {
 		$("#lockscreen").hide();
 		$("body, html").removeClass("lockscreen");
 		$("#login_error").html("").hide();
-		$("#phrase_warning_initial").show();
 		$(document.documentElement).scrollTop = 0;
         NRS.spinner.stop();
     };

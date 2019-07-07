@@ -1,5 +1,8 @@
 .idea/*
 nxt_db/*
+xel_db/*
+nxt_test_db*
+xel_test_db*
 target/*
 logs/nxt*
 logs/xel*
@@ -9,11 +12,15 @@ install/bundles/output.txt
 install/bundles/*.dmg
 install/bundles/*.sh
 install/bundles/*.exe
+.gradle
+build/*
+out/*
+xel-computation-wallet.jar
+target/*
 
-xel-computation-wallet\.jar
-/target/
+.settings/*
+.classpath
+.project
+*.iml
 
-\.settings/
-\.classpath
-\.project
-\*.iml
+xel-computation-wallet.iml

@@ -33,10 +33,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.xel.TransactionType.SUBTYPE_PAYMENT_REDEEM;
-import static org.xel.TransactionType.TYPE_PAYMENT;
-
-public final class TransactionProcessorImpl implements TransactionProcessor {
+final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("nxt.enableTransactionRebroadcasting");
     private static final boolean testUnconfirmedTransactions = Nxt.getBooleanProperty("nxt.testUnconfirmedTransactions");
@@ -48,7 +45,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
-    public static TransactionProcessorImpl getInstance() {
+    static TransactionProcessorImpl getInstance() {
         return instance;
     }
 
@@ -341,7 +338,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         return getUnconfirmedTransaction(dbKey);
     }
 
-    Transaction getUnconfirmedTransaction(DbKey dbKey) {
+    private Transaction getUnconfirmedTransaction(DbKey dbKey) {
         Nxt.getBlockchain().readLock();
         try {
             Transaction transaction = transactionCache.get(dbKey);
@@ -421,7 +418,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 Logger.logDebugMessage("Will broadcast new transaction later " + transaction.getStringId());
             } else {
                 processTransaction(unconfirmedTransaction);
-                //Logger.logDebugMessage("Accepted new transaction " + transaction.getStringId());
+                Logger.logDebugMessage("Accepted new transaction " + transaction.getStringId());
                 List<Transaction> acceptedTransactions = Collections.singletonList(transaction);
                 Peers.sendToSomePeers(acceptedTransactions);
                 transactionListeners.notify(acceptedTransactions, Event.ADDED_UNCONFIRMED_TRANSACTIONS);
@@ -429,8 +426,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     broadcastedTransactions.add((TransactionImpl) transaction);
                 }
             }
-
-        }finally {
+        } finally {
             BlockchainImpl.getInstance().writeUnlock();
         }
     }
@@ -611,7 +607,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     private void processPeerTransactions(JSONArray transactionsData) throws NxtException.NotValidException {
-        if (Nxt.getBlockchain().getHeight() < Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+        if (Nxt.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
             return;
         }
         if (transactionsData == null || transactionsData.isEmpty()) {
@@ -661,7 +657,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     private void processTransaction(UnconfirmedTransaction unconfirmedTransaction) throws NxtException.ValidationException {
         TransactionImpl transaction = unconfirmedTransaction.getTransaction();
         int curTime = Nxt.getEpochTime();
-        if ( (!(unconfirmedTransaction.getType().getType() == TYPE_PAYMENT && unconfirmedTransaction.getType().getSubtype() == SUBTYPE_PAYMENT_REDEEM) && transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) || transaction.getExpiration(true) < curTime) {
+        if ( (!TransactionType.isZeroFee(unconfirmedTransaction) && transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) || transaction.getExpiration(true) < curTime) {
             throw new NxtException.NotCurrentlyValidException("Invalid transaction timestamp");
         }
         if (transaction.getVersion() < 1) {

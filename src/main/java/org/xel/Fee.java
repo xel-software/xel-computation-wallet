@@ -20,9 +20,9 @@ public interface Fee {
 
     long getFee(TransactionImpl transaction, Appendix appendage);
 
-    Fee DEFAULT_FEE = new ConstantFee(Constants.TENTH_NXT);
+    Fee DEFAULT_FEE = new Fee.ConstantFee(Constants.TENTH_NXT);
 
-    Fee NONE = new ConstantFee(0L);
+    Fee NONE = new Fee.ConstantFee(0L);
 
     final class ConstantFee implements Fee {
 

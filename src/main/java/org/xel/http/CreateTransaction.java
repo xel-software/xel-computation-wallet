@@ -27,14 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.xel.http.JSONResponses.FEATURE_NOT_AVAILABLE;
-import static org.xel.http.JSONResponses.INCORRECT_DEADLINE;
-import static org.xel.http.JSONResponses.INCORRECT_EC_BLOCK;
-import static org.xel.http.JSONResponses.INCORRECT_LINKED_FULL_HASH;
-import static org.xel.http.JSONResponses.INCORRECT_WHITELIST;
-import static org.xel.http.JSONResponses.MISSING_DEADLINE;
-import static org.xel.http.JSONResponses.MISSING_SECRET_PHRASE;
-import static org.xel.http.JSONResponses.NOT_ENOUGH_FUNDS;
+import static org.xel.http.JSONResponses.*;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
@@ -188,7 +181,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
         long feeNQT = ParameterParser.getFeeNQT(req);
         int ecBlockHeight = ParameterParser.getInt(req, "ecBlockHeight", 0, Integer.MAX_VALUE, false);
-        long ecBlockId = ParameterParser.getUnsignedLong(req, "ecBlockId", false);
+        long ecBlockId = Convert.parseUnsignedLong(req.getParameter("ecBlockId"));
         if (ecBlockId != 0 && ecBlockId != Nxt.getBlockchain().getBlockIdAtHeight(ecBlockHeight)) {
             return INCORRECT_EC_BLOCK;
         }
@@ -283,6 +276,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     }
 
+    // FIXME should be final
     @Override
     protected boolean requirePost() {
         return true;

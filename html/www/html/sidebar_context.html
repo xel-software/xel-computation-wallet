@@ -38,7 +38,9 @@
     <ul class="dropdown-menu" data-container="body" role="menu" style="display:block;position:static;margin-bottom:5px;">
         <li><a tabindex="-1" href="#" data-option="account_info" data-i18n="account_info">Account Info</a></li>
         <li><a tabindex="-1" href="#" data-option="add_contact" data-i18n="add_contact">Add Contact</a></li>
-        <li><a tabindex="-1" href="#" data-option="send_nxt" data-i18n="send_nxt">Send XEL</a></li>
+        <li><a tabindex="-1" href="#" data-option="send_nxt">
+            <span data-i18n="send">Send</span> <span class="coin-symbol"></span>
+        </a></li>
     </ul>
 </div>
 
@@ -46,7 +48,9 @@
     <ul class="dropdown-menu" data-container="body" role="menu" style="display:block;position:static;margin-bottom:5px;">
         <li><a tabindex="-1" href="#" data-option="account_info" data-i18n="account_info">Account Info</a></li>
         <li><a tabindex="-1" href="#" data-option="update_contact" data-i18n="update_contact">Update Contact</a></li>
-        <li><a tabindex="-1" href="#" data-option="send_nxt" data-i18n="send_nxt">Send Nxt</a></li>
+        <li><a tabindex="-1" href="#" data-option="send_nxt">
+            <span data-i18n="send">Send</span> <span class="coin-symbol"></span>
+        </a></li>
     </ul>
 </div>
 
@@ -55,11 +59,10 @@
         <div style="font-weight:bold;margin-bottom:5px;">
             <span data-i18n="downloading_blockchain">Downloading blockchain</span> 
             <span class="blocks_left_outer" style="display:none;">(<span class="blocks_left"></span>)</span>
-            <span class="loading_dots"><span>.</span><span>.</span><span>.</span></span>
         </div>
         <div class="db_progress_total">
             <span data-i18n="total">Total</span>:
-            <div class="progress progress-striped sm active" style="margin-bottom:5px;margin-top:5px;">
+            <div class="progress sm" style="margin-bottom:5px;margin-top:5px;">
                 <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
                     <span class="sr-only">0% Complete</span>
                 </div>
@@ -67,7 +70,7 @@
         </div>
         <div class="db_progress_last">
             <span class="last_num_blocks"></span>:
-            <div class="progress progress-striped sm active" style="margin-bottom:5px;margin-top:5px;">
+            <div class="progress sm" style="margin-bottom:5px;margin-top:5px;">
                 <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
                     <span class="sr-only">0% Complete</span>
                 </div>
@@ -77,10 +80,6 @@
     <div class="db_halted" style="display:none;text-align:center;font-weight:bold;">
         <span data-i18n="blockchain_download_halted">Blockchain download halted</span>,<br>
         <span data-i18n="no_connection">no connection</span>
-    </div>
-    <div class="db_light" style="display:none;text-align:center;font-weight:bold;">
-        <span data-i18n="light_client">Light Client</span>,<br>
-        <span data-i18n="no_blockchain_download">blockchain is not downloaded</span>
     </div>
 </div>
 

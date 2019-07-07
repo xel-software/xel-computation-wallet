@@ -44,7 +44,9 @@ var NRS = (function(NRS, $) {
 		try {
 			NRS.submitForm($modal, $btn);
 		} catch(e) {
-			$modal.find(".error_message").html("Form submission error '" + e.message + "' - please report to developers").show();
+        	NRS.logException(e);
+        	var stackTrace = (e.stack ? " " + e.stack : "");
+			$modal.find(".error_message").html("Form submission error '" + e.message + "' - please report to developers" + stackTrace).show();
 			NRS.unlockForm($modal, $btn);
 		}
 	});
@@ -256,7 +258,7 @@ var NRS = (function(NRS, $) {
 
 		var originalRequestType = requestType;
         if (NRS.isRequireBlockchain(requestType)) {
-			if (NRS.downloadingBlockchain && !NRS.state.apiProxy) {
+			if (NRS.downloadingBlockchain && NRS.settings.transact_during_download === "0" && !NRS.state.apiProxy) {
 				$form.find(".error_message").html($.t("error_blockchain_downloading")).show();
 				if (formErrorFunction) {
 					formErrorFunction();
@@ -366,6 +368,11 @@ var NRS = (function(NRS, $) {
 				if (output.stop) {
 					if (errorMessage) {
 						$form.find(".error_message").html(errorMessage).show();
+					} else if (successMessage) {
+                        $form.find(".error_message").html("").hide();
+						$.growl(successMessage.escapeHTML(), {
+							type: "success"
+						});
 					}
 					NRS.unlockForm($modal, $btn, !output.keepOpen);
 					return;
@@ -393,16 +400,16 @@ var NRS = (function(NRS, $) {
 
 		if (data.recipient) {
 			data.recipient = $.trim(data.recipient);
-			if (/^\d+$/.test(data.recipient)) {
+			if (NRS.isNumericAccount(data.recipient)) {
 				$form.find(".error_message").html($.t("error_numeric_ids_not_allowed")).show();
 				if (formErrorFunction) {
 					formErrorFunction(false, data);
 				}
 				NRS.unlockForm($modal, $btn);
 				return;
-			} else if (!/^XEL\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(data.recipient)) {
+			} else if (!NRS.isRsAccount(data.recipient)) {
 				var convertedAccountId = $modal.find("input[name=converted_account_id]").val();
-				if (!convertedAccountId || (!/^\d+$/.test(convertedAccountId) && !/^XEL\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(convertedAccountId))) {
+				if (!convertedAccountId || (!NRS.isNumericAccount(convertedAccountId) && !NRS.isRsAccount(convertedAccountId))) {
 					$form.find(".error_message").html($.t("error_account_id")).show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
@@ -557,7 +564,7 @@ var NRS = (function(NRS, $) {
 				if (new BigInteger(amountNQT).compareTo(new BigInteger(NRS.settings["amount_warning"])) > 0) {
 					NRS.showedFormWarning = true;
 					$form.find(".error_message").html($.t("error_max_amount_warning", {
-						"nxt": NRS.formatAmount(NRS.settings["amount_warning"])
+						"amount": NRS.formatAmount(NRS.settings["amount_warning"]), "symbol": NRS.constants.COIN_SYMBOL
 					})).show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
@@ -582,7 +589,7 @@ var NRS = (function(NRS, $) {
 				if (new BigInteger(feeNQT).compareTo(new BigInteger(NRS.settings["fee_warning"])) > 0) {
 					NRS.showedFormWarning = true;
 					$form.find(".error_message").html($.t("error_max_fee_warning", {
-						"nxt": NRS.formatAmount(NRS.settings["fee_warning"])
+						"amount": NRS.formatAmount(NRS.settings["fee_warning"]), "symbol": NRS.constants.COIN_SYMBOL
 					})).show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
@@ -646,6 +653,14 @@ var NRS = (function(NRS, $) {
             }
 		}
 		if (data.messageFile && data.encrypt_message) {
+			if (!NRS.isFileEncryptionSupported()) {
+                $form.find(".error_message").html($.t("file_encryption_not_supported")).show();
+                if (formErrorFunction) {
+                    formErrorFunction(false, data);
+                }
+                NRS.unlockForm($modal, $btn);
+                return;
+            }
 			try {
 				NRS.encryptFile(data.messageFile, data.encryptionKeys, function(encrypted) {
 					data.messageFile = encrypted.file;
@@ -759,6 +774,17 @@ var NRS = (function(NRS, $) {
 			}
 		}
 	}
+
+    NRS.lockForm = function($modal) {
+        $modal.find("button").prop("disabled", true);
+        var $btn = $modal.find("button.btn-primary:not([data-dismiss=modal])");
+        if ($btn) {
+            $btn.button("loading");
+        }
+        $modal.modal("lock");
+        return $btn;
+    };
+
 
 	NRS.unlockForm = function($modal, $btn, hide) {
 		$modal.find("button").prop("disabled", false);

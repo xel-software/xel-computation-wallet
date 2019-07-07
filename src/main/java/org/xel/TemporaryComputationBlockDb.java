@@ -236,7 +236,8 @@ final class TemporaryComputationBlockDb {
             long id = rs.getLong("id");
             BlockImpl withSig = new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorId, generationSignature, blockSignature, previousBlockHash,
-                    cumulativeDifficulty, baseTarget, powTarget, pow_last_mass, pow_mass, target_last_mass, target_mass, nextBlockId, height, id,
+                    cumulativeDifficulty, baseTarget, nextBlockId, height, id,
+                    powTarget, pow_last_mass, pow_mass, target_last_mass, target_mass, 
                     loadTransactions ?
                     TemporaryComputationTransactionDb.findBlockTransactions(con, id) : null);
 

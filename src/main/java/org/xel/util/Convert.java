@@ -17,6 +17,7 @@
 package org.xel.util;
 
 import org.xel.Constants;
+import org.xel.Genesis;
 import org.xel.NxtException;
 import org.xel.crypto.Crypto;
 
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -141,16 +143,19 @@ public final class Convert {
         if (account == null || (account = account.trim()).isEmpty()) {
             return 0;
         }
-        account = account.toUpperCase();
-        if (account.startsWith("XEL-")) {
-            return Crypto.rsDecode(account.substring(4));
+        account = account.toUpperCase(Locale.ROOT);
+        int prefixEnd = account.indexOf('-');
+        if (prefixEnd > 0) {
+            return Crypto.rsDecode(account.substring(prefixEnd + 1));
+        } else if (prefixEnd == 0) {
+            return Long.valueOf(account);
         } else {
             return Long.parseUnsignedLong(account);
         }
     }
 
     public static String rsAccount(long accountId) {
-        return "XEL-" + Crypto.rsEncode(accountId);
+        return Constants.ACCOUNT_PREFIX + "-" + Crypto.rsEncode(accountId);
     }
 
     public static long fullHashToId(byte[] hash) {
@@ -162,11 +167,11 @@ public final class Convert {
     }
 
     public static long fromEpochTime(int epochTime) {
-        return epochTime * 1000L + Constants.EPOCH_BEGINNING - 500L;
+        return epochTime * 1000L + Genesis.EPOCH_BEGINNING - 500L;
     }
 
     public static int toEpochTime(long currentTime) {
-        return (int)((currentTime - Constants.EPOCH_BEGINNING + 500) / 1000);
+        return (int)((currentTime - Genesis.EPOCH_BEGINNING + 500) / 1000);
     }
 
     public static String emptyToNull(String s) {
@@ -329,12 +334,16 @@ public final class Convert {
     }
 
     public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws NxtException.NotValidException {
-        if (numBytes > 3 * maxLength) {
+        if (numBytes > getMaxStringSize(maxLength)) {
             throw new NxtException.NotValidException("Max parameter length exceeded");
         }
         byte[] bytes = new byte[numBytes];
         buffer.get(bytes);
         return Convert.toString(bytes);
+    }
+
+    public static int getMaxStringSize(int length) {
+        return 3 * length;
     }
 
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {

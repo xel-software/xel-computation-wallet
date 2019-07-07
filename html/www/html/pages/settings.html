@@ -48,7 +48,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="settings_max_nxt_decimals" data-i18n="max_nxt_decimals">Maximum XEL decimal positions</label>
+                                <label for="settings_max_nxt_decimals" data-i18n="max_nxt_decimals">Maximum decimal positions</label>
                                 <select name="max_nxt_decimals" id="settings_max_nxt_decimals" class="form-control" style="width:150px">
                                     <option value="0">0</option>
                                     <option value="1">1</option>
@@ -81,6 +81,13 @@
                                 <div class="input-group" style="width:150px">
                                     <input type="password" name="admin_password" id="settings_admin_password" class="form-control" />
                                 </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="settings_transact_during_download" data-i18n="transact_during_download">Transact During Download</label>
+                                <select name="transact_during_download" id="settings_transact_during_download" class="form-control" style="width:150px">
+                                    <option value="1" data-i18n="yes">Yes</option>
+                                    <option value="0" data-i18n="no">No</option>
+                                </select>
                             </div>
                         </div>
                     </form>
@@ -115,14 +122,6 @@
                                 <label for="settings_exchange" data-i18n="enable_exchange_section">Enable Exchange Section</label>
                                 <select name="exchange" id="settings_exchange" class="form-control" style="width:150px">
                                     <option value="-1" id="settings_exchange_initial" data-i18n="choose">Choose</option>
-                                    <option value="1" data-i18n="yes">Yes</option>
-                                    <option value="0" data-i18n="no">No</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="settings_news" data-i18n="enable_news_section">Enable News Section</label>
-                                <select name="news" id="settings_news" class="form-control" style="width:150px">
-                                    <option value="-1" id="settings_news_initial" data-i18n="choose">Choose</option>
                                     <option value="1" data-i18n="yes">Yes</option>
                                     <option value="0" data-i18n="no">No</option>
                                 </select>
@@ -169,14 +168,14 @@
                                 <label for="settings_amount_warning" data-i18n="max_amount_warning">Max Amount Warning</label>
                                 <div class="input-group" style="width:150px">
                                     <input type="text" name="amount_warning" id="settings_amount_warning" class="form-control" />
-                                    <span class="input-group-addon">XEL</span>
+                                    <span class="input-group-addon coin-symbol"></span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="settings_fee_warning" data-i18n="max_fee_warning">Max Fee Warning</label>
                                 <div class="input-group" style="width:150px">
                                     <input type="text" name="fee_warning" id="settings_fee_warning" class="form-control" />
-                                    <span class="input-group-addon">XEL</span>
+                                    <span class="input-group-addon coin-symbol"></span>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -192,6 +191,13 @@
                                     <input type="text" name="currency_transfer_warning" id="settings_currency_transfer_warning" class="form-control" />
                                     <span class="input-group-addon">Units</span>
                                 </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="settings_fake_entity_warning" data-i18n="show_fake_warnings">Show Fake Warnings</label>
+                                <select name="fake_entity_warning" id="settings_fake_entity_warning" class="form-control" style="width:150px">
+                                    <option value="1" data-i18n="yes">Yes</option>
+                                    <option value="0" data-i18n="no">No</option>
+                                </select>
                             </div>
                         </div>
                     </form>
@@ -259,15 +265,33 @@
                     <form role="form" autocomplete="off">
                         <div class="box-body" style="padding-top:0;">
                             <div class="form-group">
-                                <label for="settings_exchange_url" data-i18n="exchange_url">EXCHANGE URL</label>
+                                <label for="settings_shape_shift_url" data-i18n="shape_shift_url">ShapeShift URL</label>
                                 <div class="input-group">
-                                    <input type="text" name="exchange_url" id="settings_exchange_url" class="form-control" />
+                                    <input type="text" name="shape_shift_url" id="settings_shape_shift_url" class="form-control" />
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="settings_exchange_api_key" data-i18n="exchange_api_key">EXCHANGE API PUBLIC KEY</label>
+                                <label for="settings_shape_shift_api_key" data-i18n="shape_shift_api_key">ShapeShift API Key</label>
                                 <div class="input-group">
-                                    <input type="text" name="exchange_api_key" id="settings_exchange_api_key" class="form-control" />
+                                    <input type="text" name="shape_shift_api_key" id="settings_shape_shift_api_key" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="settings_changelly_url" data-i18n="changelly_url">Changelly URL</label>
+                                <div class="input-group">
+                                    <input type="text" name="changelly_url" id="settings_changelly_url" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="settings_changelly_api_key" data-i18n="changelly_api_key">Changelly API Key</label>
+                                <div class="input-group">
+                                    <input type="text" name="changelly_api_key" id="settings_changelly_api_key" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="settings_changelly_api_secret" data-i18n="changelly_api_secret">Changelly API Secret</label>
+                                <div class="input-group">
+                                    <input type="text" name="changelly_api_secret" id="settings_changelly_api_secret" class="form-control" />
                                 </div>
                             </div>
                         </div>

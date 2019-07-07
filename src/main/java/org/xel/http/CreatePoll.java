@@ -107,7 +107,7 @@ public final class CreatePoll extends CreateTransaction {
         long minBalance = ParameterParser.getLong(req, "minBalance", 0, Long.MAX_VALUE, false);
 
         if (minBalance != 0) {
-            byte minBalanceModel = ParameterParser.getByte(req, "minBalanceModel", (byte)0, (byte)1, true);
+            byte minBalanceModel = ParameterParser.getByte(req, "minBalanceModel", (byte)0, (byte)3, true);
             builder.minBalance(minBalanceModel, minBalance);
         }
 

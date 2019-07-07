@@ -18,7 +18,6 @@ package org.xel.addons;
 
 import org.xel.BlockchainProcessor;
 import org.xel.Nxt;
-import org.xel.NxtException;
 import org.xel.http.APIServlet;
 import org.xel.http.APITag;
 import org.json.simple.JSONObject;
@@ -39,7 +38,7 @@ public final class PopOffCounter implements AddOn {
     public APIServlet.APIRequestHandler getAPIRequestHandler() {
         return new APIServlet.APIRequestHandler(new APITag[]{APITag.ADDONS, APITag.BLOCKS}) {
             @Override
-            protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
+            protected JSONStreamAware processRequest(HttpServletRequest request) {
                 JSONObject response = new JSONObject();
                 response.put("numberOfPopOffs", numberOfPopOffs);
                 return response;

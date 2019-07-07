@@ -53,19 +53,13 @@ var PassPhraseGenerator = {
 			this.passPhrase = phraseWords.join(" ");
 			crypto.getRandomValues(random);
 			$container.find(".step_2 textarea").val(this.passPhrase).prop("readonly", true);
-
-			
-
+			$container.find("#step_2_account").val(NRS.getAccountId(this.passPhrase, true));
 			setTimeout(function () {
 				$("#account_phrase_generator_start").hide();
+                $("#confirm_passphrase_warning").prop('checked', false);
+                $("#confirm_passphrase_warning_container").css("background-color", "");
 				$("#account_phrase_generator_stop").fadeIn("slow");
 				$("#custom_passphrase_link").show();
-				var nxtAddress = new NxtAddress();
-				var mid = NRS.getAccountId(this.passPhrase);
-				console.log("Generated Account ID: " + mid);
-	            if (nxtAddress.set(mid)) {
-	                    $("#creationheading").html('<span class="glyphicon glyphicon-lock"></span> ' + nxtAddress.toString());
-	            }
 			}, 1500);
 		} else {
 			$container.find(".step_2 textarea").val($.t("unavailable")).prop("readonly", true);

@@ -131,7 +131,7 @@ public final class VoteWeighting {
             return code;
         }
 
-        public abstract long getBalance(VoteWeighting voteWeighting, long voterId, int height);
+        protected abstract long getBalance(VoteWeighting voteWeighting, long voterId, int height);
 
         public static MinBalanceModel get(byte code) {
             for (MinBalanceModel minBalanceModel : values()) {

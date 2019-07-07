@@ -63,8 +63,6 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
             }
             blocks = Nxt.getBlockchain().getBlocksAfter(blockId, limit > 0 ? (int)limit : 36);
         }
-
-
         blocks.forEach(block -> nextBlocksArray.add(block.getJSONObject()));
         response.put("nextBlocks", nextBlocksArray);
 

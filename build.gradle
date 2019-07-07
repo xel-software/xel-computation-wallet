@@ -1,0 +1,89 @@
+
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+group = 'org.xel'
+version = '3.2.1'
+description = 'xel-wallet'
+sourceCompatibility = '11'
+mainClassName = 'org.xel.Nxt'
+
+javafx {
+    version = "12.0.1"
+    modules = [ 'javafx.controls', 'javafx.web' ]
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-jdk14:1.7.25'
+    compile 'org.mockito:mockito-all:1.10.19'
+    compile 'com.google.zxing:javase:3.3.2'
+    compile 'com.google.zxing:core:3.3.2'
+    compile 'org.bitlet:weupnp:0.1.4'
+    compile 'org.apache.lucene:lucene-queryparser:7.6.0'
+    compile 'org.apache.lucene:lucene-core:7.6.0'
+    compile 'org.eclipse.jetty:jetty-proxy:9.4.8.v20171121'
+    compile 'org.eclipse.jetty:jetty-servlets:9.4.8.v20171121'
+    compile 'org.eclipse.jetty.websocket:websocket-api:9.4.8.v20171121'
+    compile 'org.eclipse.jetty.websocket:websocket-server:9.4.8.v20171121'
+    compile 'org.apache.tika:tika-core:1.21'
+    compile 'org.apache.tika:tika-parsers:1.21'
+    compile 'javax.servlet:javax.servlet-api:4.0.0'
+    compile 'org.bitcoinj:bitcoinj-core:0.14.6'
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    compile 'com.h2database:h2:1.4.196'
+    compile 'org.apache.commons:commons-lang3:3.9'
+
+    testCompile 'junit:junit:4.10'
+}
+
+
+
+test {
+    exclude '**/*'
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'conf'
+        }
+    }
+}
+
+jar {
+    destinationDirectory = file('.')
+    archiveFileName = "xel-computation-wallet.jar"
+    doFirst {
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+    manifest {
+        attributes(
+            'Class-Path': configurations.runtime.files.collect {"$it.name"}.join(' '),
+            "Main-Class": "${mainClassName}"
+        )
+    }
+
+    from('conf') {
+        include 'logging-default.properties'
+        include 'nxt-default.properties'
+        include 'nxt-junit-default.properties'
+        include 'testvm.properties'
+    }
+}
+
+task runDesktop(type: JavaExec) {
+    jvmArgs = ['-Dxel.runtime.mode=desktop']
+    classpath sourceSets.main.runtimeClasspath
+    main = "${mainClassName}"
+}

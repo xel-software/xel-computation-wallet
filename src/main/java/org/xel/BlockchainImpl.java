@@ -16,7 +16,6 @@
 
 package org.xel;
 
-import org.xel.computation.ComputationConstants;
 import org.xel.db.DbIterator;
 import org.xel.db.DbUtils;
 import org.xel.util.Convert;
@@ -85,7 +84,6 @@ final class BlockchainImpl implements Blockchain {
         BlockImpl last = lastBlock.get();
         return last == null ? 0 : last.getHeight();
     }
-
 
     @Override
     public int getLastBlockTimestamp() {

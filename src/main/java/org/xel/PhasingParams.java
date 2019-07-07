@@ -152,12 +152,9 @@ public final class PhasingParams {
             return;
         }
 
-
-
     }
 
     void checkApprovable() throws NxtException.NotCurrentlyValidException {
-
     }
 
     public long getQuorum() {

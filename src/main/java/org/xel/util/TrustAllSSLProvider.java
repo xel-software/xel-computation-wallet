@@ -34,7 +34,7 @@ public class TrustAllSSLProvider {
     private static final SSLSocketFactory sslSocketFactory;
     static {
         TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                 return null;
             }
             public void checkClientTrusted(X509Certificate[] certs, String authType) {

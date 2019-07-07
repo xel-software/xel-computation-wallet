@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 
 public class RuntimeEnvironment {
 
-    public static final String RUNTIME_MODE_ARG = "nxt.runtime.mode";
-    public static final String DIRPROVIDER_ARG = "nxt.runtime.dirProvider";
+    public static final String RUNTIME_MODE_ARG = "xel.runtime.mode";
+    public static final String DIRPROVIDER_ARG = "xel.runtime.dirProvider";
 
     private static final String osname = System.getProperty("os.name").toLowerCase();
     private static final boolean isHeadless;

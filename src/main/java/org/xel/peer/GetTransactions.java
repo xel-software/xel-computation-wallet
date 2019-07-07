@@ -27,7 +27,7 @@ import org.json.simple.JSONStreamAware;
 /**
  * Get the transactions
  */
-public class GetTransactions extends PeerServlet.PeerRequestHandler {
+final class GetTransactions extends PeerServlet.PeerRequestHandler {
 
     static final GetTransactions instance = new GetTransactions();
 

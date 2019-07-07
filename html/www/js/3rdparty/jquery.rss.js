@@ -3,18 +3,6 @@
  */
 
 /* https://github.com/sdepold/jquery-rss MIT */
-function substrWithTags(str, len) {
-    var result = str.substr(0, len),
-        lastOpening = result.lastIndexOf('<'),
-        lastClosing = result.lastIndexOf('>');
-
-    if (lastOpening !== -1 && (lastClosing === -1 || lastClosing < lastOpening)) {
-        result += str.substring(len, str.indexOf('>', len) + 1);
-    }
-
-    return result;
-}
-
 
 (function($) {
 	"use strict";
@@ -47,8 +35,8 @@ function substrWithTags(str, len) {
 
 	RSS.prototype.load = function(callback) {
 		var apiProtocol = "http" + (this.options.ssl ? "s" : ""),
-			apiHost = apiProtocol + "://query.yahooapis.com/v1/public/yql",
-			apiUrl = apiHost + "?v=1.0&format=" + this.options.outputMode + "&callback=?&q=" +  encodeURIComponent("SELECT * FROM rss WHERE url = \"" +this.url + "\"");
+			apiHost = apiProtocol + "://ajax.googleapis.com/ajax/services/feed/load",
+			apiUrl = apiHost + "?v=1.0&output=" + this.options.outputMode + "&callback=?&q=" + encodeURIComponent(this.url)
 
 			if (this.options.limit != null) apiUrl += "&num=" + this.options.limit;
 		if (this.options.key != null) apiUrl += "&key=" + this.options.key;
@@ -61,8 +49,8 @@ function substrWithTags(str, len) {
 
 		this.load(function(data) {
 			try {
-				self.feed = data.query.results
-				self.entries = data.query.results.item
+				self.feed = data.responseData.feed
+				self.entries = data.responseData.feed.entries
 			} catch (e) {
 				self.entries = []
 				self.feed = null
@@ -221,14 +209,14 @@ function substrWithTags(str, len) {
 		return $.extend({
 			feed: this.feedTokens,
 			url: String(entry.link).escapeHTML(),
-			author: entry.creator,
-			date: entry.pubDate,
+			author: entry.author,
+			date: entry.publishedDate,
 			title: entry.title,
-			body: entry.description,
-			shortBody: substrWithTags(entry.description, 500),
+			body: entry.content,
+			shortBody: entry.contentSnippet,
 
 			bodyPlain: (function(entry) {
-				var result = entry.description
+				var result = entry.content
 					.replace(/<script[\\r\\\s\S]*<\/script>/mgi, '')
 					.replace(/<\/?[^>]+>/gi, '')
 
@@ -239,13 +227,13 @@ function substrWithTags(str, len) {
 				return result
 			})(entry),
 
-			shortBodyPlain: substrWithTags(entry.description, 500).replace(/<\/?[^>]+>/gi, ''),
+			shortBodyPlain: entry.contentSnippet.replace(/<\/?[^>]+>/gi, ''),
 			index: $.inArray(entry, this.entries),
 			totalEntries: this.entries.length,
 
 			teaserImage: (function(entry) {
 				try {
-					return entry.description.match(/(<img.*?>)/gi)[0]
+					return entry.content.match(/(<img.*?>)/gi)[0]
 				} catch (e) {
 					return ""
 				}
@@ -253,7 +241,7 @@ function substrWithTags(str, len) {
 
 			teaserImageUrl: (function(entry) {
 				try {
-					return entry.description.match(/(<img.*?>)/gi)[0].match(/src="(.*?)"/)[1]
+					return entry.content.match(/(<img.*?>)/gi)[0].match(/src="(.*?)"/)[1]
 				} catch (e) {
 					return ""
 				}

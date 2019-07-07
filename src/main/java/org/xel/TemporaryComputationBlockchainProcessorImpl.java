@@ -28,7 +28,6 @@ import org.xel.peer.Peers;
 import org.xel.util.*;
 
 import java.math.BigInteger;
-import java.nio.channels.AcceptPendingException;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.util.*;
@@ -66,6 +65,7 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
     private volatile boolean isDownloading;
     private volatile boolean isProcessingBlock;
     private volatile boolean alreadyInitialized = false;
+    private volatile long genesisBlockId = Genesis.GENESIS_BLOCK_ID_COMPUTATIONCHAIN;
 
     private final Runnable getMoreBlocksThread = new Runnable() {
 
@@ -864,6 +864,11 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
         return null;
     }
 
+    @Override
+    public long getGenesisBlockId() {
+        return genesisBlockId;
+    }
+
     private void doTrimDerivedTables() {
         lastTrimHeight = Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0);
         if (lastTrimHeight > 0) {
@@ -934,12 +939,12 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
                 lastBlock = popOffTo(previousBlock).get(0);
                 try {
                     pushBlock(block);
-                    TemporaryComputationTransactionProcessorImpl.getInstance().processLater(lastBlock.getTransactions());
+                    Nxt.getTemporaryComputationTransactionProcessor().processLater(lastBlock.getTransactions());
                     Logger.logDebugMessage("Last block (alternative computation) " + lastBlock.getStringId() + " was replaced by " + block.getStringId());
                 } catch (BlockNotAcceptedException e) {
                     Logger.logDebugMessage("Replacement block (alternative computation) failed to be accepted, pushing back our last block");
                     pushBlock(lastBlock);
-                    TemporaryComputationTransactionProcessorImpl.getInstance().processLater(block.getTransactions());
+                    Nxt.getTemporaryComputationTransactionProcessor().processLater(block.getTransactions());
                 }
             } finally {
                 blockchain.writeUnlock();
@@ -1072,7 +1077,7 @@ public final class TemporaryComputationBlockchainProcessorImpl implements Blockc
 
                 block.setPreviousComputational(previousLastBlock);
                 blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT_COMPUTATION);
-                TemporaryComputationTransactionProcessorImpl.getInstance().requeueAllUnconfirmedTransactions();
+                Nxt.getTemporaryComputationTransactionProcessor().requeueAllUnconfirmedTransactions();
                 addBlock(block);
                 accept(block, duplicates);
 

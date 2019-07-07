@@ -30,8 +30,8 @@ import java.util.logging.LogRecord;
  *
  * The following logging.properties entries are used:
  * <ul>
- * <li>MemoryHandler.level (default ALL)</li>
- * <li>MemoryHandler.size (default 100, minimum 10)</li>
+ * <li>nxt.util.MemoryHandler.level (default ALL)</li>
+ * <li>nxt.util.MemoryHandler.size (default 100, minimum 10)</li>
  * </ul>
  */
 public class MemoryHandler extends Handler {

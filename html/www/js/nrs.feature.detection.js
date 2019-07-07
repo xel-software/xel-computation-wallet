@@ -90,6 +90,10 @@ var NRS = (function (NRS) {
         return !isDesktopApplication; // When using JavaFX you cannot export the contact list
     };
 
+    NRS.isFileEncryptionSupported = function() {
+        return !isDesktopApplication; // When using JavaFX you cannot read the file to encrypt
+    };
+
     NRS.isShowDummyCheckbox = function() {
         return isDesktopApplication && navigator.userAgent.indexOf("Linux") >= 0; // Correct rendering problem of checkboxes on Linux
     };
@@ -100,7 +104,10 @@ var NRS = (function (NRS) {
 
     NRS.getRemoteNodeUrl = function() {
         if (!NRS.isMobileApp()) {
-            return "";
+            if (!isNode) {
+                return "";
+            }
+            return NRS.getModuleConfig().url;
         }
         if (remoteNode) {
             return remoteNode.getUrl();
@@ -158,7 +165,7 @@ var NRS = (function (NRS) {
     };
 
     NRS.isScanningAllowed = function () {
-        return isMobileDevice || isLocalHost;
+        return isMobileDevice || isLocalHost || NRS.isTestNet;
     };
 
     NRS.isCameraPermissionRequired = function () {
@@ -166,11 +173,11 @@ var NRS = (function (NRS) {
     };
 
     NRS.getShapeShiftUrl = function() {
-        if (isDesktopApplication) {
-            return location.origin + "/shapeshift/";
-        } else {
-            return NRS.settings.exchange_url;
-        }
+        return NRS.settings.shape_shift_url;
+    };
+
+    NRS.getChangellyUrl = function() {
+        return NRS.settings.changelly_url;
     };
 
     NRS.isForgingSupported = function() {
@@ -220,8 +227,34 @@ var NRS = (function (NRS) {
         return !isLocalHost || NRS.state && NRS.state.apiProxy || NRS.isMobileApp();
     };
 
+    NRS.isWindowPrintSupported = function() {
+        return !isDesktopApplication && !isMobileDevice;
+    };
+
+    NRS.isDisableScheduleRequest = function() {
+        return NRS.isMobileApp() || (NRS.state && NRS.state.apiProxy);
+    };
+
+    NRS.getAdminPassword = function() {
+        if (window.java) {
+            return window.java.getAdminPassword();
+        }
+        if (isNode) {
+            return NRS.getModuleConfig().adminPassword;
+        }
+        return NRS.settings.admin_password;
+    };
+
+    NRS.isAnimationAllowed = function() {
+        return !isDesktopApplication;
+    };
+
+    NRS.isFileReaderSupported = function() {
+        return !isDesktopApplication;
+    };
+
     return NRS;
-}(Object.assign(NRS || {}, isNode ? global.client : {}), jQuery));
+}(isNode ? client : NRS || {}, jQuery));
 
 if (isNode) {
     module.exports = NRS;

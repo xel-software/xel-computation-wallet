@@ -19,7 +19,6 @@ package org.xel.http;
 import org.xel.Constants;
 import org.xel.util.Convert;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -103,7 +102,7 @@ public class APITestServlet extends HttpServlet {
             "<div  class='col-xs-8 col-sm-9 col-md-10'>\n" +
             "<div class='panel-group' id='accordion'>\n";
 
-    private static final String barter1 =
+    private static final String footer1 =
             "</div> <!-- panel-group -->\n" +
             "</div> <!-- col -->\n" +
             "</div> <!-- row -->\n" +
@@ -116,7 +115,7 @@ public class APITestServlet extends HttpServlet {
             "<script>\n" +
             "$(document).ready(function() {";
 
-    private static final String barter2 =
+    private static final String footer2 =
             "});\n" +
             "</script>\n" +
             "</body>\n" +
@@ -133,11 +132,7 @@ public class APITestServlet extends HttpServlet {
             String requestType = entry.getKey();
             Set<APITag> apiTags = entry.getValue().getAPITags();
             for (APITag apiTag : apiTags) {
-                SortedSet<String> set = requestTags.get(apiTag.name());
-                if (set == null) {
-                    set = new TreeSet<>();
-                    requestTags.put(apiTag.name(), set);
-                }
+                SortedSet<String> set = requestTags.computeIfAbsent(apiTag.name(), k -> new TreeSet<>());
                 set.add(requestType);
             }
         }
@@ -171,7 +166,7 @@ public class APITestServlet extends HttpServlet {
         return buf.toString();
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");
@@ -222,9 +217,9 @@ public class APITestServlet extends HttpServlet {
                     writer.print(fullTextMessage("No API calls selected.", "info"));
                 }
             }
-            writer.print(barter1);
+            writer.print(footer1);
             writer.print(bufJSCalls.toString());
-            writer.print(barter2);
+            writer.print(footer2);
         }
 
     }
@@ -253,7 +248,7 @@ public class APITestServlet extends HttpServlet {
             buf.append(" &nbsp;&nbsp;\n");
         }
         buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='/doc/");
-        buf.append(className.replace('.', '/')).append(".html' target='_blank'>javadoc</a>&nbsp;&nbsp;\n");
+        buf.append(className.replace('.', '/').replace('$', '.')).append(".html' target='_blank'>javadoc</a>&nbsp;&nbsp;\n");
         buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='https://nxtwiki.org/wiki/The_Nxt_API#");
         appendWikiLink(className.substring(className.lastIndexOf('.') + 1), buf);
         buf.append("' target='_blank'>wiki</a>&nbsp;&nbsp;\n");
@@ -293,10 +288,10 @@ public class APITestServlet extends HttpServlet {
         for (String parameter : parameters) {
             buf.append("<tr class='api-call-input-tr'>\n");
             buf.append("<td>").append(parameter).append(":</td>\n");
-            if (isTextArea(parameter)) {
+            if (isTextArea(parameter, requestHandler)) {
                 buf.append("<td><textarea ");
             } else {
-                buf.append("<td><input type='").append(isPassword(parameter) ? "password" : "text").append("' ");
+                buf.append("<td><input type='").append(isPassword(parameter, requestHandler) ? "password" : "text").append("' ");
             }
             buf.append("name='").append(parameter).append("' ");
             String value = Convert.emptyToNull(req.getParameter(parameter));
@@ -304,7 +299,7 @@ public class APITestServlet extends HttpServlet {
                 buf.append("value='").append(value.replace("'", "&quot;")).append("' ");
             }
             buf.append("style='width:100%;min-width:200px;'");
-            if (isTextArea(parameter)) {
+            if (isTextArea(parameter, requestHandler)) {
                 buf.append("></textarea></td>\n");
             } else {
                 buf.append("/></td>\n");
@@ -334,12 +329,13 @@ public class APITestServlet extends HttpServlet {
         return buf.toString();
     }
 
-    private static boolean isPassword(String parameter) {
-        return "secretPhrase".equals(parameter) || "adminPassword".equals(parameter) || "recipientSecretPhrase".equals(parameter);
+    private static boolean isPassword(String parameter, APIServlet.APIRequestHandler requestHandler) {
+        return "secretPhrase".equals(parameter) || "adminPassword".equals(parameter)
+                || "recipientSecretPhrase".equals(parameter) || requestHandler.isPassword(parameter);
     }
 
-    private static boolean isTextArea(String parameter) {
-        return "website".equals(parameter);
+    private static boolean isTextArea(String parameter, APIServlet.APIRequestHandler requestHandler) {
+        return "website".equals(parameter) || requestHandler.isTextArea(parameter);
     }
 
     private static void appendWikiLink(String className, StringBuilder buf) {
