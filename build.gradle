@@ -17,7 +17,7 @@ sourceCompatibility = '11'
 mainClassName = 'org.xel.Nxt'
 
 javafx {
-    version = "12.0.1"
+    version = "11.0.1"
     modules = [ 'javafx.controls', 'javafx.web' ]
 }
 
@@ -66,6 +66,9 @@ jar {
         from {
             configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
         }
+        exclude 'META-INF/*.RSA'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
     }
     manifest {
         attributes(

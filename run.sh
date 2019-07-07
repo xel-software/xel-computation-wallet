@@ -1,3 +1,3 @@
 #!/bin/bash
-
-./gradlew run
+#./gradlew run
+java -cp xel-wallet.jar:conf org.xel.Nxt

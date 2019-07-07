@@ -16,11 +16,10 @@ install/bundles/*.exe
 build/*
 out/*
 xel-computation-wallet.jar
+xel-wallet.jar
 target/*
 
 .settings/*
 .classpath
 .project
 *.iml
-
-xel-computation-wallet.iml

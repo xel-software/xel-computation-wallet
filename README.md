@@ -1,49 +1,30 @@
 ----
-# Welcome to XEL!
-
-[![GitHub version](https://badge.fury.io/gh/xel-software%2Fxel-lite-wallet.svg)](https://badge.fury.io/gh/xel-software%2Fxel-lite-wallet)
-
-XEL is a decentralized supercomputer based on cryptography and blockchain technology.
+# XEL TESTNET BRANCH
 
 ----
 ## disclaimer
 
-XEL CORE / XELINE IS OPEN-SOURCE SOFTWARE RUNNING ON THE MAIN-NET BUT IS STILL CONSIDERED "BETA" AND MAY CONTAIN BUGS, SOME OF WHICH MAY HAVE SERIOUS CONSEQUENCES. WE THEREFORE DISCLAIM ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING DIRECTLY OR INDIRECTLY FROM THE USE OF THIS SOFTWARE OR OF ANY DERIVATIVE WORK. USE THE SOFTWARE AND THE INFORMATION PRESENTED HERE AT OUR OWN RISK.
+THIS BRANCH IS HIGHLY UNSTABLE. IT IS MEANT TO BE USED WITH XEL TESTNET, WHICH CAN BE RESETED AT ANY MOMENT
 
 ----
-## Run XEL Computation Wallet from binaries (***recommended for desktops***)
-
-https://github.com/xel-software/xel-computation-wallet/releases/tag/latest
-
-----
-## Run XEL Computation Wallet from docker installer (***recommended for servers***)
-
-https://github.com/xel-software/xel-installer-docker
-
-----
-## Run XEL Computation Wallet from sources (***recommended for advanced users***)
+## HOW TO RUN THE TESTNET
 
 ### dependencies
   - Java 12 : [oracle jdk](https://www.oracle.com/technetwork/java/javase/downloads/jdk12-downloads-5295953.html) or [openjdk](https://jdk.java.net/12/)
-  - Maven : https://maven.apache.org/install.html
 
 ### clone the repository
 
 ```
-git clone https://github.com/xel-software/xel-computation-wallet
-cd xel-computation-wallet
+git clone --single-branch --branch testing https://github.com/xel-software/xel-computation-wallet xel-testnet-wallet
+cd xel-testnet-wallet
 ```
-
-### compile it
-
-`mvn package`
 
 ### clone the miner
 
 clone the miner next to your wallet folder like this :
 
 ```
-my_main_folder/xel-computation-wallet
+my_main_folder/xel-testnet-wallet
 my_main_folder/xel-miner
 ```
 
@@ -57,19 +38,24 @@ make install
 ### integrate the miner into the computation wallet
 
 ```
-cd xel-computation-wallet
+cd xel-testnet-wallet
 ./pull_miner.sh
 ```
 
+### mandatory configuration
+
+In order to connect to the main testnet nodes, you need to add this configuration :
+
+```
+nxt.defaultTestnetPeers=testnet-01.xel.org; testnet-02.xel.org
+nxt.testnetPeers=
+nxt.isTestnet=true
+```
+
+
 ### start from the command line:
-- Linux/macOS: `./start.sh`
+- Linux/macOS: `./run.sh`
 - Windows: `run.bat`
-
-
-***wait for the JavaFX wallet window to open***
-***on platforms without JavaFX, open http://localhost:17876/ in a browser***
-
-
 
 
 ----

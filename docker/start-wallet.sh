@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cd /xel-wallet
-
-chmod +x run.sh
+#cd /xel-wallet
+#chmod +x run.sh
 
 echo "set config..."
 
