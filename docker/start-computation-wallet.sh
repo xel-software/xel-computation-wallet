@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /xel-computation-wallet
+#cd /xel-computation-wallet
 
 echo "set config..."
 
