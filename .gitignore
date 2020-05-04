@@ -17,3 +17,7 @@ xel-computation-wallet\.jar
 \.classpath
 \.project
 \*.iml
+
+build
+.gradle
+xel_test_db
