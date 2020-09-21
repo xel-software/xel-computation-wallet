@@ -52,7 +52,7 @@ cd xel-computation-wallet
 ```
 
 ### start from the command line:
-- Linux/macOS: `./start.sh`
+- Linux/macOS: `./run.sh`
 - Windows: `run.bat`
 
 
