@@ -1,6 +1,7 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
  * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2020      Rick-Man-God                                         *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -28,7 +29,9 @@ var NRS = (function(NRS, $, undefined) {
 			$("#rss_news_disabled").hide();
 		}
 
-      $(".rss_news").empty().addClass("data-loading").html("<img src='img/loading_indicator.gif' width='32' height='32' />");
+//  TO DO !!!
+//  $(".rss_news").empty().addClass("data-loading").html("<img src='img/loading_indicator.gif' width='32' height='32' />");
+
       var ssl = "";
       if (window.location.protocol == "https:") {
          ssl = "s";
@@ -56,8 +59,10 @@ var NRS = (function(NRS, $, undefined) {
          "ssl": ssl
       };
 
-      $("#nxtforum_news").rss("https://talk.elasticexplorer.org/latest.rss", settings, NRS.newsLoaded);
-      $("#bctforum_news").rss("https://bitcointalk.org/index.php?topic=1957064.320;topicseen;type=rss;action=.xml", settings, NRS.newsLoaded);
+//  TO DO !!!
+//   $("#nxtforum_news").rss("https://talk.elasticexplorer.org/latest.rss", settings, NRS.newsLoaded);
+//    $("#bctforum_news").rss("https://bitcointalk.org/index.php?topic=5150011.320;topicseen;type=rss;action=.xml", settings, NRS.newsLoaded);
+
 
 		NRS.pageLoaded();
 	};
